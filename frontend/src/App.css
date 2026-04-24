@@ -1,0 +1,133 @@
+/* ===== ROOT LAYOUT ===== */
+#root {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* ===== BODY RESET ===== */
+body {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background-color: #f8f9fa;
+  color: #212529;
+  margin: 0;
+}
+
+/* ===== LINKS ===== */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+a:hover {
+  color: #0d6efd;
+}
+
+/* ===== NAVBAR ===== */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #ffffff;
+}
+
+/* ===== CARD (GLOBAL) ===== */
+.card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #0d6efd;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #0b5ed7;
+}
+
+/* ===== FORM INPUTS ===== */
+.form-control,
+.form-select {
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid #dee2e6;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
+}
+
+/* ===== IMAGES ===== */
+img {
+  max-width: 100%;
+  display: block;
+  border-radius: 8px;
+}
+
+/* ===== TYPOGRAPHY ===== */
+h1, h2, h3, h4, h5 {
+  font-weight: 600;
+}
+
+p {
+  color: #6c757d;
+}
+
+/* ===== BADGES ===== */
+.badge {
+  border-radius: 6px;
+  padding: 5px 10px;
+}
+
+/* ===== TABLE ===== */
+.table {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* ===== FOOTER ===== */
+footer {
+  background: #ffffff;
+  border-top: 1px solid #eee;
+}
+
+/* ===== UTILITIES ===== */
+.shadow-soft {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.rounded-xl {
+  border-radius: 16px;
+}
+
+/* ===== SCROLLBAR (MODERN LOOK) ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d6d6d6;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}

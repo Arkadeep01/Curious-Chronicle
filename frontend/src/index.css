@@ -1,0 +1,118 @@
+/* ===== ROOT ===== */
+:root {
+  --primary: #0d6efd;
+  --text-dark: #212529;
+  --text-muted: #6c757d;
+  --bg-light: #f8f9fa;
+  --bg-white: #ffffff;
+
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+
+  color: var(--text-dark);
+  background-color: var(--bg-light);
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== RESET ===== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-light);
+}
+
+/* 🚨 IMPORTANT: remove this (was breaking layout) */
+/* ❌ display: flex; place-items: center; */
+
+/* ===== LINKS ===== */
+a {
+  font-weight: 500;
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #0b5ed7;
+}
+
+/* ===== HEADINGS ===== */
+h1 {
+  font-size: 2.5rem;
+  line-height: 1.2;
+}
+
+h2, h3, h4, h5 {
+  font-weight: 600;
+}
+
+/* ===== BUTTON ===== */
+button {
+  border-radius: 8px;
+  border: none;
+  padding: 0.6em 1.2em;
+  font-size: 0.95rem;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--primary);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  background-color: #0b5ed7;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== FORM INPUT ===== */
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+/* ===== CARDS ===== */
+.card {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  transition: 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+/* ===== IMAGES ===== */
+img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+/* ===== FOOTER ===== */
+footer {
+  background: #fff;
+  border-top: 1px solid #eee;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
