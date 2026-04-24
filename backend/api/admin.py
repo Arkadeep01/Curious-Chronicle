@@ -24,7 +24,7 @@ class PostAdmin(admin.ModelAdmin):
     list_display = ["title", "user", "category", "view_count"]
 
     def view_count(self, obj):
-        return obj.views.count()
+        return obj.views
 
 class CommentAdmin(admin.ModelAdmin):
     list_display = ["post","name","email","comment"]

@@ -9,7 +9,7 @@ from drf_yasg import openapi
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Blog Backend APIs",
+        title="Chronicle Backend APIs",
         default_version="v1",
         description="This is the documentation for the backend API",
         terms_of_service="http://mywbsite.com/policies/",

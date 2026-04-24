@@ -4,7 +4,7 @@ from api import views as api_views
 
 urlpatterns = [
   path('user/token/', api_views.MyTokenObtainPairView.as_view()),
-  path('user/token/refresh', TokenRefreshView.as_view()),
+  path('user/token/refresh/', TokenRefreshView.as_view()),
   path('user/register/', api_views.RegisterView.as_view()),
   path('user/profile/<user_id>', api_views.ProfileView.as_view()),
   # path('user/password-reset/<email>/', api_views.PasswordEmailVerify.as_view(), name='password_reset'),
@@ -12,10 +12,10 @@ urlpatterns = [
 
 
   # POST Endpoints
-  path('post/category/list', api_views.CategoryListAPIView.as_view()),
-  path('post/category/posts/<category_slug>', api_views.CategoryListAPIView.as_view()),
+  path('post/category/list/', api_views.CategoryListAPIView.as_view()),
+  path('post/category/posts/<category_slug>/', api_views.PostCategoryListAPIView.as_view()),
   path('post/lists/', api_views.PostListAPIView.as_view()),
-  path('post/details/<slug>', api_views.PostDetailAPIView.as_view()),
+  path('post/details/<slug>/', api_views.PostDetailAPIView.as_view()),
   path('post/likes-post/', api_views.LikePostAPIView.as_view()),
   path('post/comments/', api_views.PostCommentAPIView.as_view()),
   path('post/bookmarks/', api_views.BookmarkPostAPIView.as_view()),

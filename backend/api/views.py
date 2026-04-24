@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.http import JsonResponse
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
@@ -47,10 +47,8 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self) -> Any:
         user_id = self.kwargs['user_id']
-
-        user = api_models.User.objects.get(id=user_id)
-        profile = api_models.Profile.objects.get(user=user)
-        return profile
+        user = get_object_or_404(api_models.User, id=user_id)
+        return get_object_or_404(api_models.Profile, user=user)
     
 
 # def generate_numeric_Otp(length=8):
@@ -160,9 +158,9 @@ class PostDetailAPIView(generics.RetrieveAPIView):
 
     def get_object(self) -> Any:
         slug = self.kwargs['slug']
-        post = api_models.Post.objects.get(slug=slug, status="Active")
+        post = get_object_or_404(api_models.Post, slug=slug, status="Active")
         post.views += 1
-        post.save()
+        post.save(update_fields=["views"])
         return post
     
 
@@ -299,7 +297,7 @@ class DashboardStats(generics.ListAPIView):
 
     def get_queryset(self) -> Any:
         user_id = self.kwargs['user_id']
-        user = api_models.User.Objects.get(id=user_id)
+        user = api_models.User.objects.get(id=user_id)
         views= api_models.Post.objects.filter(user=user).aggregate(views=Sum("views"))['views']
         posts= api_models.Post.objects.filter(user=user).count()
         likes= api_models.Post.objects.filter(user=user).aggregate(total_Likes = Sum("likes"))['total_likes']
@@ -317,7 +315,7 @@ class DashboardStats(generics.ListAPIView):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
 
-        return Response(Serializer.data)
+        return Response(serializer.data)
 
 
 # --------------------------
@@ -329,7 +327,7 @@ class DashboardPostList(generics.ListAPIView):
 
     def get_queryset(self) -> Any:
         user_id = self.kwargs['user_id']
-        user = api_models.User.Objects.get(id=user_id)
+        user = api_models.User.objects.get(id=user_id)
 
         return api_models.Post.objects.filter(user=user).order_by("-id")
 
@@ -343,7 +341,7 @@ class DashboardCommentList(generics.ListAPIView):
 
     def get_queryset(self) -> Any:
         user_id = self.kwargs['user_id']
-        user = api_models.User.Objects.get(id=user_id)\
+        user = api_models.User.objects.get(id=user_id)
             
         return api_models.Comment.objects.filter(post__user=user)
 
@@ -357,7 +355,7 @@ class DashboardNotificationList(generics.ListAPIView):
 
     def get_queryset(self) -> Any:
         user_id = self.kwargs['user_id']
-        user = api_models.User.Objects.get(id=user_id)
+        user = api_models.User.objects.get(id=user_id)
 
         return api_models.Notification.objects.filter(seen=False, user=user)
 
@@ -379,7 +377,7 @@ class DashboardMarkNotificationList(APIView):
         noti_id= request.data['noti_id']
         noti = api_models.Notification.objects.get(id=noti_id)
 
-        noti_seen = True
+        noti.seen = True
         noti.save()
 
         return Response({"message": "Notification Marked as Seen"}, status=status.HTTP_200_OK)
@@ -401,9 +399,9 @@ class DashboardReplyCommentAPIView(APIView):
     def post(self, request):
         comment_id= request.data['comment_id']
         reply = request.data['reply']
-        comment = api_models.Notification.objects.get(id=comment_id)
+        comment = api_models.Comment.objects.get(id=comment_id)
         comment.reply = reply
-        noti.save()
+        comment.save()
 
         return Response({"message": "Comment Response Sent"}, status=status.HTTP_201_CREATED)
     
@@ -457,12 +455,11 @@ class DashboardUpdatePostAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = api_serializer.PostSerializer
     permission_classes = (AllowAny,)
 
-    def get_object(self):
-        user_id= self.kwargs('user_id')
-        post_id= self.kwargs('post_id')
-        user = api_models.User.objects.get(id=user_id)
-
-        return api_models.Post.objects.get(id=post_id, user=user)
+    def get_object(self) -> Any:
+        user_id = self.kwargs['user_id']
+        post_id = self.kwargs['post_id']
+        user = get_object_or_404(api_models.User, id=user_id)
+        return get_object_or_404(api_models.Post, id=post_id, user=user)
 
     def update(self, request, *args, **kwargs):
         post_instance = self.get_object()
@@ -481,24 +478,15 @@ class DashboardUpdatePostAPIView(generics.RetrieveUpdateDestroyAPIView):
         print(category_id)
         print(post_status)
 
-        category = api_models.Category.objects.get(id=category_id)
+        category = get_object_or_404(api_models.Category, id=category_id)
 
         post_instance.title = title
         if image != "undefined":
             post_instance.image = image
         post_instance.description = description
         post_instance.tags = tags
-        post_instance.category_id = category_id
-        post_instance.post_status = post_status
+        post_instance.category = category
+        post_instance.status = post_status
+        post_instance.save()
 
         return Response({"message": "Post Updated Successfully"}, status=status.HTTP_200_OK)
-    
-
-{
-    "title": "New post",
-    "image": "",
-    "description": "lorem",
-    "tags": "tags, here",
-    "category_id": 1,
-    "post_status": "Active"
-}

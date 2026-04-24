@@ -6,7 +6,7 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-ib%%g1r^k5&al$6)im^uorgkt4xjh-a%n2+&i2jpajq*htigtj"
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "testserver"]
 env = Env()
 env.read_env()
 
@@ -106,26 +106,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 AUTH_USER_MODEL = 'api.User'
-# SITE_URL=env("SITE_URL")
-
-# Stripe API Keys 
-# STRIPE_PUBLIC_KEY = env("STRIPE_PUBLIC_KEY")
-# STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY")
-
-# # Paypal API Keys 
-# PAYPAL_CLIENT_ID = env('PAYPAL_CLIENT_ID')
-# PAYPAL_SECRET_ID = env('PAYPAL_SECRET_ID')
-
-# FLUTTERWAVE_PUBLIC_KEY=env("FLUTTERWAVE_PUBLIC_KEY")
-# FLUTTERWAVE_PRIVATE_KEY=env("FLUTTERWAVE_PRIVATE_KEY")
-# FLUTTERWAVE_PRIVATE_KEY_LIVE=env("FLUTTERWAVE_PRIVATE_KEY_LIVE")
-# FLUTTERWAVE_ENCRYPTION_KEY=env("FLUTTERWAVE_ENCRYPTION_KEY")
-
-# RAVE_PUBLIC_KEY=env("RAVE_PUBLIC_KEY")
-# RAVE_SECRET_KEY=env("RAVE_SECRET_KEY")
-
-# PAYSTACK_PUBLIC_KEY=env("PAYSTACK_PUBLIC_KEY")
-# PAYSTACK_PRIVATE_KEY=env("PAYSTACK_PRIVATE_KEY")
+SITE_URL=env("SITE_URL")
 
 REST_FRAMEWORK = {
   'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -185,13 +166,13 @@ CORS_ALLOW_ALL_ORIGINS = True
 JAZZMIN_SETTINGS = {
     "site_title": "VEXEL",
     "site_header": "VEXEL",
-    "site_brand": "Chrono Blogging Admin",
+    "site_brand": "Curious Chronicleging Admin",
 
     "site_icon": "images/favicon2.png",
     "site_logo": "images/logo_light.png",
     "user_avatar": "images/PHOTO.png",
 
-    "welcome_sign": "Welcome To Chrono Blog",
+    "welcome_sign": "Welcome To Curious Chronicle",
     "copyright": "Vexel",
     "topmenu_links": [
         {"name": "Dashboard", "url": "home", "permissions": ["auth.view_user"]},

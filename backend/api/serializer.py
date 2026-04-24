@@ -171,7 +171,7 @@ class CommentSerializer(serializers.ModelSerializer):
 # Post serializer for user registration
 # --------------------------------
 class PostSerializer(serializers.ModelSerializer):
-    comments = CommentSerializer(many=True)
+    comments = CommentSerializer(source="comment_set", many=True, read_only=True)
     
     class Meta:
         model = api_models.Post

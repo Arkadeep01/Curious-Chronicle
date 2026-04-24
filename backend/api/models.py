@@ -121,6 +121,7 @@ class Post(models.Model):
   description =models.TextField(null=True, blank=True)
   image = models.ImageField(upload_to="image", null=True, blank=True)
   status = models.CharField(choices=STATUS, max_length=100, default="Active")
+  tags = models.CharField(max_length=255, null=True, blank=True)
   views = models.IntegerField(default=0)
   Likes = models.ManyToManyField(User, blank=True, related_name="Likes_User")
   slug = models.SlugField(unique=True, null=True, blank=True)  
