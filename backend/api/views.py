@@ -3,20 +3,20 @@ from django.http import JsonResponse
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
-from django.contrib.auth.tokens import default_token_generator
+from django.utils.timezone import now, timedelta
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
-from django.db.models import Sum
 
 # Restframework
 from rest_framework import status
-from rest_framework.decorators import api_view, APIView
+from rest_framework.decorators import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import generics
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
+
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -25,6 +25,7 @@ from datetime import datetime
 # Others
 import json
 import random
+import secrets
 from typing import Any, cast
 
 # Custom Imports
@@ -51,71 +52,118 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         return get_object_or_404(api_models.Profile, user=user)
     
 
-# def generate_numeric_Otp(length=8):
-#     otp = ''.join([str(random.randint(0,9)) for _ in range(length)])
-#     return otp
-
-# class PasswordEmailVerify(generics.RetrieveAPIView):
-#     permission_classes = (AllowAny,)
-#     serializer_class = api_serializer.UserSerializer
-    
-#     def get_object(self) -> Any:
-#         email = self.kwargs['email']
-#         user = api_models.User.objects.get(email=email)
-        
-#         if user:
-#             user.otp = generate_numeric_Otp()
-#             uidb64 = user.pk
-            
-#              # Generate a token and include it in the reset link sent via email
-#             refresh = RefreshToken.for_user(user)
-#             reset_token = str(refresh.access_token)
-
-#             # Store the reset_token in the user model for later verification
-#             user.reset_token = reset_token
-#             user.save()
-
-#             link = f"http://localhost:5173/create-new-password?otp={user.otp}&uidb64={uidb64}&reset_token={reset_token}"
-            
-#             merge_data = {
-#                 'link': link, 
-#                 'username': user.username, 
-#             }
-#             subject = f"Password Reset Request"
-#             text_body = render_to_string("email/password_reset.txt", merge_data)
-#             html_body = render_to_string("email/password_reset.html", merge_data)
-            
-#             msg = EmailMultiAlternatives(
-#                 subject=subject, from_email=settings.FROM_EMAIL,
-#                 to=[user.email], body=text_body
-#             )
-#             msg.attach_alternative(html_body, "text/html")
-#             msg.send()
-#         return user
+def generate_numeric_otp(length=6):
+    otp = ''.join([str(secrets.randbelow(10)) for _ in range(length)])
+    return otp
 
 
-# class PasswordChangeView(generics.RetrieveAPIView):
-#     permission_classes = (AllowAny,)
-#     serializer_class = api_serializer.UserSerializer
-    
-#     def create(self, request, *args, **kwargs):
-#         payload = request.data
-        
-#         otp = payload['otp']
-#         uidb64 = payload['uidb64']
-#         password = payload['password']
+# --------------------------
+# Password Verifier
+# --------------------------
+class PasswordEmailVerify(APIView):
+    permission_classes = (AllowAny,)
 
-        
+    def post(self, request, *args, **kwargs):
 
-#         user = api_models.User.objects.get(id=uidb64, otp=otp)
-#         if user:
-#             user.set_password(password)
-#             user.otp = ""
-#             user.save()
-            
-#             return Response( {"message": "Password Changed Successfully"}, status=status.HTTP_201_CREATED)
-#         else:
-#             return Response( {"message": "An Error Occured"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # GET USER BY EMAIL
+        email = request.data.get('email')
+
+        try:
+            user = api_models.User.objects.get(email=email)
+        except api_models.User.DoesNotExist:
+            return Response({"message": "User not found"}, status=404)
+
+        # GENERATE OTP + EXPIRY
+        user.otp = generate_numeric_otp()
+        user.otp_expiry = now() + timedelta(minutes=10)  # OTP valid for 10 mins
+
+        # GENERATE RESET TOKEN (JWT)
+        refresh = RefreshToken.for_user(user)
+        reset_token = str(refresh.access_token)
+
+        user.reset_token = reset_token
+        user.save()
+
+        # CREATE RESET LINK
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        link = f"http://localhost:5173/create-password/?otp={user.otp}&uid={uid}&token={reset_token}"
+
+        merge_data = {
+            'link': link,
+            'username': user.username,
+        }
+
+        # SEND EMAIL
+        subject = "Password Reset Request"
+        text_body = render_to_string("email/password_reset.txt", merge_data)
+        html_body = render_to_string("email/password_reset.html", merge_data)
+
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            from_email=settings.FROM_EMAIL,
+            to=[user.email],
+            body=text_body
+        )
+        msg.attach_alternative(html_body, "text/html")
+        msg.send()
+
+        return Response({"message": "Password reset email sent"}, status=200)
+
+
+# --------------------------
+# Password Change View
+# --------------------------
+class PasswordChangeView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+
+        # ================================
+        # EXTRACT DATA
+        # ================================
+        otp = request.data.get('otp')
+        uid = request.data.get('uid')
+        password = request.data.get('password')
+        token = request.data.get('token')
+
+        # ================================
+        # VALIDATE USER
+        # ================================
+        try:
+            user = api_models.User.objects.get(id=uid, otp=otp)
+        except api_models.User.DoesNotExist:
+            return Response({"message": "Invalid OTP or user"}, status=400)
+
+        # ================================
+        # CHECK OTP EXPIRY
+        # ================================
+        if not user.otp_expiry or user.otp_expiry < now():
+            return Response({"message": "OTP expired"}, status=400)
+
+        # ================================
+        # VALIDATE RESET TOKEN
+        # ================================
+        if user.reset_token != token:
+            return Response({"message": "Invalid reset token"}, status=400)
+
+        # ================================
+        # VALIDATE PASSWORD (BASIC)
+        # ================================
+        if len(password) < 6:
+            return Response({"message": "Password too short"}, status=400)
+
+        # ================================
+        # SET NEW PASSWORD
+        # ================================
+        user.set_password(password)
+
+        # Clear sensitive fields
+        user.otp = ""
+        user.otp_expiry = None
+        user.reset_token = ""
+        user.save()
+
+        return Response({"message": "Password changed successfully"}, status=200)
 
 
 
@@ -298,16 +346,16 @@ class DashboardStats(generics.ListAPIView):
     def get_queryset(self) -> Any:
         user_id = self.kwargs['user_id']
         user = api_models.User.objects.get(id=user_id)
-        views= api_models.Post.objects.filter(user=user).aggregate(views=Sum("views"))['views']
-        posts= api_models.Post.objects.filter(user=user).count()
-        likes= api_models.Post.objects.filter(user=user).aggregate(total_Likes = Sum("likes"))['total_likes']
-        bookmarks = api_models.Bookmark.objects.filter(post__user=user)
+        posts = api_models.Post.objects.filter(user=user)
+        views = sum(post.views for post in posts)
+        likes = sum(post.Likes.count() for post in posts)
+        bookmarks = api_models.Bookmark.objects.filter(post__user=user).count()
 
         return [{
-            "Views": views,
-            "Posts": posts,
-            "Likes": likes,
-            "Bookmarks": bookmarks,
+            "views": views,
+            "posts": posts.count(),
+            "likes": likes,
+            "bookmarks": bookmarks,
         }]
 
     # We grab all the query_set written in this block above

@@ -14,8 +14,9 @@ class User(AbstractUser):
   username = models.CharField(unique=True, max_length=255)
   email = models.EmailField(unique=True)
   full_name = models.CharField(max_length=100, null=True)
-  # otp = models.CharField(max_length=100, null=True, blank=True)
-  # reset_token = models.CharField(max_length=255, null=True, blank=True)
+  otp = models.CharField(max_length=100, null=True, blank=True)
+  otp_expiry = models.DateTimeField(null=True, blank=True)
+  reset_token = models.CharField(max_length=255, null=True, blank=True)
   
   USERNAME_FIELD = 'email'
   REQUIRED_FIELDS = ['username']
@@ -186,7 +187,7 @@ class Notification(models.Model):
   NOTI_TYPE = (
     ("Like", "Like"),
     ("Comment", "Comment"),
-    ("Bookmarks", "Bookmarks"),
+    ("Bookmark", "Bookmark"),
   )
   user = models.ForeignKey(User, on_delete=models.CASCADE)
   post = models.ForeignKey(Post, on_delete=models.CASCADE)

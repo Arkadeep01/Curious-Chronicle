@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import Header from "../partials/Header";
-import Footer from "../partials/Footer";
+import Header from "../partials/header";
+import Footer from "../partials/footer";
 import { Link } from "react-router-dom";
 
 import apiInstance from "../../utils/axios";
 import useUserData from "../../plugin/useUserData";
 import moment from "moment";
-import Toast from "../../plugin/Toast";
+import Toast from "../../plugin/toast";
 
 function Dashboard() {
     const [stats, setStats] = useState({});
@@ -28,7 +28,7 @@ function Dashboard() {
                 const [stats_res, post_res, comment_res, noti_res] = await Promise.all([
                     apiInstance.get(`author/dashboard/stats/${userId}/`),
                     apiInstance.get(`author/dashboard/post-list/${userId}/`),
-                    apiInstance.get(`author/dashboard/comment-list/`),
+                    apiInstance.get(`author/dashboard/comment-list/${userId}/`),
                     apiInstance.get(`author/dashboard/noti-list/${userId}/`)
                 ]);
 

@@ -1,10 +1,10 @@
 import { useState } from "react";
-import Header from "../partials/Header";
-import Footer from "../partials/Footer";
+import Header from "../partials/header";
+import Footer from "../partials/footer";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import apiInstance from "../../utils/axios";
-import Toast from "../../plugin/Toast";
+import Toast from "../../plugin/toast";
 
 function CreatePassword() {
     const [password, setPassword] = useState("");
@@ -15,14 +15,14 @@ function CreatePassword() {
     const [searchParams] = useSearchParams();
 
     const otp = searchParams.get("otp");
-    const uidb64 = searchParams.get("uidb64");
-    const reset_token = searchParams.get("reset_token");
+    const uid = searchParams.get("uid");
+    const token = searchParams.get("token");
 
     const handlePasswordSubmit = async (e) => {
         e.preventDefault();
 
         // ✅ VALIDATION
-        if (!otp || !uidb64 || !reset_token) {
+        if (!otp || !uid || !token) {
             Toast("error", "Invalid or expired reset link");
             return;
         }
@@ -42,8 +42,8 @@ function CreatePassword() {
 
             const formData = new FormData();
             formData.append("otp", otp);
-            formData.append("uidb64", uidb64);
-            formData.append("reset_token", reset_token);
+            formData.append("uid", uid);
+            formData.append("token", token);
             formData.append("password", password);
 
             await apiInstance.post("user/password-change/", formData);

@@ -1,5 +1,5 @@
 import { Route, Routes, BrowserRouter } from "react-router-dom";
-import Index from "./views/core/Index";
+import Index from "./views/core/index";
 import Detail from "./views/core/Details";
 import Search from "./views/core/Search";
 import Category from "./views/core/Category";

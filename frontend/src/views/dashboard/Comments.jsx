@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from "react";
-import Header from "../partials/Header";
-import Footer from "../partials/Footer";
+import Header from "../partials/header";
+import Footer from "../partials/footer";
 
 import apiInstance from "../../utils/axios";
-import Moment from "../../plugin/Moment";
-import Toast from "../../plugin/Toast";
+import Moment from "../../plugin/moment";
+import Toast from "../../plugin/toast";
+import useUserData from "../../plugin/useUserData";
 
 function Comments() {
     const [comments, setComments] = useState([]);
     const [replyMap, setReplyMap] = useState({}); 
+    const user = useUserData();
+    const userId = user?.user_id;
     
     useEffect(() => {
       let ignore = false;
   
       const loadComments = async () => {
           try {
-              const response = await apiInstance.get("author/dashboard/comment-list/");
+              const response = await apiInstance.get(`author/dashboard/comment-list/${userId}/`);
   
               if (!ignore) {
                   setComments(response.data); 
@@ -26,12 +29,12 @@ function Comments() {
           }
       };
   
-      loadComments();
+      if (userId) loadComments();
   
       return () => {
           ignore = true;
       };
-  }, []);
+  }, [userId]);
 
     const handleReplyChange = (id, value) => {
         setReplyMap((prev) => ({
@@ -62,7 +65,7 @@ function Comments() {
               [commentId]: "",
           }));
   
-          const response = await apiInstance.get("author/dashboard/comment-list/");
+          const response = await apiInstance.get(`author/dashboard/comment-list/${userId}/`);
           setComments(response.data);
   
       } catch (err) {

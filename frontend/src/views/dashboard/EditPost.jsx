@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import Header from "../partials/Header";
-import Footer from "../partials/Footer";
+import Header from "../partials/header";
+import Footer from "../partials/footer";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import apiInstance from "../../utils/axios";
 import useUserData from "../../plugin/useUserData";
-import Toast from "../../plugin/Toast";
+import Toast from "../../plugin/toast";
 import Swal from "sweetalert2";
 
 function EditPost() {
@@ -40,7 +40,10 @@ function EditPost() {
                 ]);
 
                 if (!ignore) {
-                    setEditPost(postRes.data);
+                    setEditPost({
+                        ...postRes.data,
+                        category: postRes.data?.category?.id || "",
+                    });
                     setCategoryList(catRes.data);
                 }
             } catch (err) {
@@ -96,7 +99,7 @@ function EditPost() {
             formData.append("title", post.title);
             formData.append("description", post.description);
             formData.append("tags", post.tags);
-            formData.append("category", post.category);
+            formData.append("category", post.category?.id || post.category);
             formData.append("post_status", post.status);
 
             // only append image if changed

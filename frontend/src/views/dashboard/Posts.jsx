@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import Header from "../partials/Header";
-import Footer from "../partials/Footer";
+import Header from "../partials/header";
+import Footer from "../partials/footer";
 import { Link } from "react-router-dom";
 
 import apiInstance from "../../utils/axios";
@@ -76,7 +76,7 @@ function Posts() {
                                 </span>
                             </h5>
 
-                            <Link to="/AddPost/" className="btn btn-primary btn-sm">
+                            <Link to="/add-post/" className="btn btn-primary btn-sm">
                                 Add New
                             </Link>
                         </div>
@@ -140,14 +140,14 @@ function Posts() {
 
                                                 <td>
                                                     <Link
-                                                        to={`/detail/${p.slug}/`}
+                                                        to={`/${p.slug}/`}
                                                         className="text-dark"
                                                     >
                                                         {p.title}
                                                     </Link>
                                                 </td>
 
-                                                <td>{p.view}</td>
+                                                <td>{p.views}</td>
 
                                                 <td>
                                                     {moment(p.date).format(

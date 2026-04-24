@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import Header from "../partials/Header";
-import Footer from "../partials/Footer";
+import Header from "../partials/header";
+import Footer from "../partials/footer";
 
 import apiInstance from "../../utils/axios";
 import useUserData from "../../plugin/useUserData";
-import Toast from "../../plugin/Toast";
+import Toast from "../../plugin/toast";
 
 function Notifications() {
     const [noti, setNoti] = useState([]);

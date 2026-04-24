@@ -1,11 +1,11 @@
 import { useState } from "react";
-import Header from "../partials/Header";
-import Footer from "../partials/Footer";
+import Header from "../partials/header";
+import Footer from "../partials/footer";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useAuthStore } from "../../store/auth";
 import { register } from "../../utils/auth";
-import Toast from "../../plugin/Toast";
+import Toast from "../../plugin/toast";
 
 function Register() {
     const [bioData, setBioData] = useState({

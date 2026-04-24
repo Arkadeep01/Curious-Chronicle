@@ -7,8 +7,8 @@ urlpatterns = [
   path('user/token/refresh/', TokenRefreshView.as_view()),
   path('user/register/', api_views.RegisterView.as_view()),
   path('user/profile/<user_id>', api_views.ProfileView.as_view()),
-  # path('user/password-reset/<email>/', api_views.PasswordEmailVerify.as_view(), name='password_reset'),
-  # path('user/password-change/', api_views.PasswordChangeView.as_view(), name='password_reset'),
+  path('user/password-reset/', api_views.PasswordEmailVerify.as_view(), name='password_reset'),
+  path('user/password-change/', api_views.PasswordChangeView.as_view(), name='password_change'),
 
 
   # POST Endpoints
@@ -24,7 +24,7 @@ urlpatterns = [
   # Dashboard Endpoints
   path('author/dashboard/stats/<user_id>/', api_views.DashboardStats.as_view()),
   path('author/dashboard/post-list/<user_id>/', api_views.DashboardPostList.as_view()),
-  path('author/dashboard/comment-list/', api_views.DashboardCommentList.as_view()),
+  path('author/dashboard/comment-list/<user_id>/', api_views.DashboardCommentList.as_view()),
   path('author/dashboard/noti-list/<user_id>/', api_views.DashboardNotificationList.as_view()),
   path('author/dashboard/noti-mark-seen/', api_views.DashboardMarkNotificationList.as_view()),
   path('author/dashboard/reply-comment/', api_views.DashboardReplyCommentAPIView.as_view()),
