@@ -1,31 +1,67 @@
 import { Link } from "react-router-dom";
-import { FaHome, FaPlusCircle, FaSearch, FaUser } from "react-icons/fa";
+import { FaUser } from "react-icons/fa";
 
 function Header() {
   return (
-    <header className="border-bottom bg-white mb-4">
+    <header className="border-bottom bg-white">
       <nav className="container d-flex align-items-center justify-content-between py-3">
 
-        <Link to="/" className="h4 mb-0 text-dark text-decoration-none">
-          Curious Chronicle
-        </Link>
+        {/* LEFT SIDE */}
+        <div className="d-flex align-items-center gap-3">
+          <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none">
 
-        <div className="d-flex gap-4 align-items-center">
+            <img
+              src="/logo.png"
+              alt="Curious Chronicle Logo"
+              style={{
+                width: "40px",
+                height: "40px",
+                objectFit: "cover",
+                borderRadius: "50%"
+              }}
+            />
 
-          <Link to="/" className="text-dark d-flex align-items-center gap-2 text-decoration-none">
-            <FaHome /> Home
+            <span className="fw-bold text-dark fs-5 logo">
+              Curious <span style={{ color: "#4f46e5" }}>Chronicle</span>
+            </span>
           </Link>
 
-          <Link to="/AddPost/" className="text-dark d-flex align-items-center gap-2 text-decoration-none">
-            <FaPlusCircle /> Add Post
+          {/* Stories pill */}
+          <Link
+            to="/stories"
+            className="px-3 py-1 text-decoration-none text-dark"
+            style={{
+              background: "#f1f5f9",
+              borderRadius: "20px",
+              fontSize: "14px"
+            }}
+          >
+            Stories
+          </Link>
+        </div>
+
+        {/* RIGHT SIDE */}
+        <div className="d-flex align-items-center gap-4">
+
+          <Link to="/login" className="text-dark text-decoration-none">
+            Sign in
           </Link>
 
-          <Link to="/search/" className="text-dark d-flex align-items-center gap-2 text-decoration-none">
-            <FaSearch /> Search
+          <Link
+            to="/register"
+            className="text-white text-decoration-none px-3 py-2"
+            style={{
+              background: "#4f46e5",
+              borderRadius: "10px",
+              fontSize: "14px"
+            }}
+          >
+            Get started
           </Link>
 
-          <Link to="/Profile/" className="text-dark d-flex align-items-center gap-2 text-decoration-none">
-            <FaUser /> Profile
+          {/* Profile Icon Only */}
+          <Link to="/profile" className="text-dark">
+            <FaUser size={18} />
           </Link>
 
         </div>

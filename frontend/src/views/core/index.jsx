@@ -45,12 +45,10 @@ function Index() {
         };
     }, []);
 
-    // ✅ DERIVED DATA (NO STATE)
     const popularPosts = useMemo(() => {
         return [...posts].sort((a, b) => b.views - a.views);
     }, [posts]);
 
-    // Pagination
     const itemsPerPage = 4;
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -61,7 +59,6 @@ function Index() {
 
     const totalPages = Math.ceil(posts.length / itemsPerPage);
 
-    // ✅ FIXED: NO HOOK INSIDE FUNCTION
     const handleLikePost = async (postId) => {
         try {
             const res = await apiInstance.post("post/likes-post/", {
@@ -104,6 +101,76 @@ function Index() {
         <>
             <Header />
 
+            {/* HERO SECTION */}
+            <section className="hero-section">
+                <div className="container">
+
+                <div className="row align-items-center">
+
+                    {/* LEFT CONTENT */}
+                    <div className="col-md-6">
+
+                    <h1 className="hero-title">
+                        Discover Ideas That <span>Shape Thinking</span>
+                    </h1>
+
+                    <p className="hero-subtitle">
+                        Explore curated stories on technology, culture, and innovation —
+                        crafted to inform, inspire, and empower curious minds.
+                    </p>
+
+                    <div className="d-flex gap-3 mt-4 flex-wrap">
+
+                        <Link to="/stories" className="hero-btn-primary">
+                        Explore Stories →
+                        </Link>
+
+                        <Link to="/about" className="hero-btn-secondary">
+                        Learn More
+                        </Link>
+
+                    </div>
+
+                    </div>
+
+                    {/* RIGHT IMAGE */}
+                    <div className="col-md-6 text-center">
+
+                    <div
+                        className="hero-card"
+                        onMouseMove={(e) => {
+                        const img = e.currentTarget.querySelector(".hero-img");
+                        const rect = e.currentTarget.getBoundingClientRect();
+
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+
+                        const rotateX = -(y / rect.height - 0.5) * 12;
+                        const rotateY = (x / rect.width - 0.5) * 12;
+
+                        img.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.03)`;
+                        }}
+                        onMouseLeave={(e) => {
+                        const img = e.currentTarget.querySelector(".hero-img");
+                        img.style.transform = "rotateX(0) rotateY(0)";
+                        }}
+                    >
+                        <img
+                        src="/images/sub-hero.jpg"
+                        alt="hero"
+                        className="hero-img"
+                        />
+                    </div>
+
+                    </div>
+
+                </div>
+
+                </div>
+            </section>
+
+
+            
             {/* Trending */}
             <section className="container mt-4">
                 <h2>Trending Articles 🔥</h2>
