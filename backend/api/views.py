@@ -31,7 +31,8 @@ from typing import Any, cast
 # Custom Imports
 from api import serializer as api_serializer
 from api import models as api_models
-
+from api.models import Feedback
+from api.serializer import FeedbackSerializer
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = api_serializer.MyTokenObtainPairSerializer         # Here, it specifies the serializer class to be used with this view.
@@ -538,3 +539,13 @@ class DashboardUpdatePostAPIView(generics.RetrieveUpdateDestroyAPIView):
         post_instance.save()
 
         return Response({"message": "Post Updated Successfully"}, status=status.HTTP_200_OK)
+
+
+
+# --------------------------
+# Feedback APIs 
+# --------------------------
+class FeedbackAPIView(generics.CreateAPIView):
+    queryset = Feedback.objects.all()
+    serializer_class = FeedbackSerializer
+    permission_classes = [AllowAny]

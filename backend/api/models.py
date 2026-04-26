@@ -204,3 +204,16 @@ class Notification(models.Model):
   class Meta:
     ordering = ["-date"]
     verbose_name_plural = "Notifications"
+
+
+
+# ----------------------------
+# Feedback Model
+# ----------------------------
+class Feedback(models.Model):
+    email = models.EmailField()
+    message = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email

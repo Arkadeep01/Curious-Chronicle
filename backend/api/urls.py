@@ -30,4 +30,7 @@ urlpatterns = [
   path('author/dashboard/reply-comment/', api_views.DashboardReplyCommentAPIView.as_view()),
   path('author/dashboard/post-create/', api_views.DashboardPostCreateAPIView.as_view()),
   path('author/dashboard/post-detail/<user_id>/<post_id>/', api_views.DashboardUpdatePostAPIView.as_view()),
+
+  # Additional for Feedback
+  path('feedback/', api_views.FeedbackAPIView.as_view()),
 ]
