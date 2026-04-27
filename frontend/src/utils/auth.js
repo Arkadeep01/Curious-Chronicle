@@ -78,7 +78,7 @@ export const register = async (full_name, email, password, password2) => {
         // Handling errors and returning data and error information
         return {
             data: null,
-            error: error.response.data || "Something went wrong",
+            error: error.response?.data || { message: "Something went wrong" },
         };
     }
 };

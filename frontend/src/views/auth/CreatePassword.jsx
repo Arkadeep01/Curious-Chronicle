@@ -1,154 +1,119 @@
 import { useState } from "react";
 import Header from "../partials/header";
-import Footer from "../partials/footer";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import apiInstance from "../../utils/axios";
 import Toast from "../../plugin/toast";
 
 function CreatePassword() {
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-    const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-    const otp = searchParams.get("otp");
-    const uid = searchParams.get("uid");
-    const token = searchParams.get("token");
+  const otp = searchParams.get("otp");
+  const uid = searchParams.get("uid");
+  const token = searchParams.get("token");
 
-    const handlePasswordSubmit = async (e) => {
-        e.preventDefault();
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
 
-        // ✅ VALIDATION
-        if (!otp || !uid || !token) {
-            Toast("error", "Invalid or expired reset link");
-            return;
-        }
+    if (!otp || !uid || !token) {
+      Toast("error", "Invalid or expired reset link");
+      return;
+    }
 
-        if (password !== confirmPassword) {
-            Toast("warning", "Passwords do not match");
-            return;
-        }
+    if (password !== confirmPassword) {
+      Toast("warning", "Passwords do not match");
+      return;
+    }
 
-        if (password.length < 6) {
-            Toast("warning", "Password must be at least 6 characters");
-            return;
-        }
+    if (password.length < 6) {
+      Toast("warning", "Password must be at least 6 characters");
+      return;
+    }
 
-        try {
-            setIsLoading(true);
+    try {
+      setIsLoading(true);
 
-            const formData = new FormData();
-            formData.append("otp", otp);
-            formData.append("uid", uid);
-            formData.append("token", token);
-            formData.append("password", password);
+      await apiInstance.post("user/password-change/", {
+        otp,
+        uid,
+        token,
+        password,
+      });
 
-            await apiInstance.post("user/password-change/", formData);
+      Toast("success", "Password updated successfully");
 
-            Toast("success", "Password changed successfully");
+      setTimeout(() => navigate("/login"), 1200);
+    } catch (error) {
+      const errorData = error?.response?.data;
 
-            navigate("/login");
-        } catch (error) {
-            console.error(error);
+      let message =
+        errorData?.message ||
+        errorData?.detail ||
+        Object.values(errorData || {})?.flat()?.[0] ||
+        "Failed to reset password";
 
-            Toast(
-                "error",
-                error?.response?.data?.message || "Failed to reset password"
-            );
-        } finally {
-            setIsLoading(false);
-        }
-    };
+      Toast("error", message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    return (
-        <>
-            <Header />
+  return (
+    <>
+      <Header />
 
-            <section
-                className="container d-flex flex-column vh-100 justify-content-center"
-                style={{ marginTop: "100px" }}
-            >
-                <div className="row justify-content-center">
-                    <div className="col-lg-5 col-md-8">
+      <div className="auth-wrapper create-page">
+        <div className="auth-card">
+          <div className="create-bg">
+            <img src="/images/create_password.jpg" alt="Create Password" />
+          </div>
 
-                        <div className="card shadow-lg border-0">
-                            <div className="card-body p-5">
+          <div className="create-text">
+            <h2>
+              Set your new password
+              <br />
+              Stay protected.
+            </h2>
+            <p>Choose a strong password to secure your account.</p>
+          </div>
 
-                                <h2 className="fw-bold mb-2">
-                                    Create New Password
-                                </h2>
-                                <p className="text-muted mb-4">
-                                    Secure your account with a new password
-                                </p>
+          <div className="create-form">
+            <h2>Create Password</h2>
+            <p className="auth-subtext">Enter and confirm your new password</p>
 
-                                <form onSubmit={handlePasswordSubmit}>
+            <form onSubmit={handlePasswordSubmit}>
+              <input
+                type="password"
+                placeholder="New password"
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
 
-                                    <div className="mb-3">
-                                        <label className="form-label">
-                                            New Password
-                                        </label>
-                                        <input
-                                            type="password"
-                                            className="form-control"
-                                            placeholder="Enter password"
-                                            required
-                                            onChange={(e) =>
-                                                setPassword(e.target.value)
-                                            }
-                                        />
-                                    </div>
+              <input
+                type="password"
+                placeholder="Confirm password"
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
 
-                                    <div className="mb-4">
-                                        <label className="form-label">
-                                            Confirm Password
-                                        </label>
-                                        <input
-                                            type="password"
-                                            className="form-control"
-                                            placeholder="Confirm password"
-                                            required
-                                            onChange={(e) =>
-                                                setConfirmPassword(e.target.value)
-                                            }
-                                        />
-                                    </div>
+              <small className="password-hint">
+                Use uppercase, number & special character
+              </small>
 
-                                    <button
-                                        type="submit"
-                                        disabled={isLoading}
-                                        className={`btn w-100 ${
-                                            isLoading
-                                                ? "btn-secondary"
-                                                : "btn-primary"
-                                        }`}
-                                    >
-                                        {isLoading ? (
-                                            <>
-                                                Processing...
-                                                <i className="fas fa-spinner fa-spin ms-2"></i>
-                                            </>
-                                        ) : (
-                                            <>
-                                                Save Password
-                                                <i className="fas fa-check ms-2"></i>
-                                            </>
-                                        )}
-                                    </button>
-
-                                </form>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </section>
-
-            <Footer />
-        </>
-    );
+              <button disabled={isLoading}>
+                {isLoading ? "Saving..." : "Update Password"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }
 
 export default CreatePassword;

@@ -4,7 +4,6 @@ import Header from "../partials/header";
 import Footer from "../partials/footer";
 
 function About() {
-
   const location = useLocation();
 
   useEffect(() => {

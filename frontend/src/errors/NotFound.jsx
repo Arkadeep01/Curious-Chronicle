@@ -14,7 +14,7 @@ function NotFound() {
       {/* LEFT */}
       <div style={{ width: "50%" }}>
         <img
-          src="./images/error.png"
+          src="../../public/images/error.png"
           alt="404"
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />

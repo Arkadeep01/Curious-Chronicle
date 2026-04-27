@@ -6,123 +6,105 @@ import apiInstance from "../../utils/axios";
 import Swal from "sweetalert2";
 
 function ForgotPassword() {
-    const [email, setEmail] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-    const handleEmailSubmit = async (e) => {
-        e.preventDefault();
+  const handleEmailSubmit = async (e) => {
+    e.preventDefault();
 
-        // ✅ VALIDATION
-        if (!email) {
-            Swal.fire({
-                icon: "warning",
-                text: "Email is required",
-            });
-            return;
-        }
+    if (!email) {
+      Swal.fire({
+        icon: "warning",
+        text: "Email is required",
+      });
+      return;
+    }
 
-        try {
-            setIsLoading(true);
+    try {
+      setIsLoading(true);
 
-            await apiInstance.post("user/password-reset/", { email });
+      Swal.fire({
+        title: "Sending email...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
 
-            setEmail("");
+      await apiInstance.post("user/password-reset/", { email });
 
-            Swal.fire({
-                icon: "success",
-                title: "Password Reset Email Sent!",
-                text: "Check your email for further instructions.",
-            });
+      Swal.close();
 
-        } catch (error) {
-            console.error(error);
+      setEmail("");
 
-            Swal.fire({
-                icon: "error",
-                title: "Failed",
-                text:
-                    error?.response?.data?.message ||
-                    "Something went wrong. Try again.",
-            });
+      Swal.fire({
+        icon: "success",
+        title: "Email Sent!",
+        text: "Check your email and click the reset link.",
+      });
+    } catch (error) {
+      Swal.close();
 
-        } finally {
-            setIsLoading(false);
-        }
-    };
+      const message =
+        error?.response?.data?.message || "Something went wrong. Try again.";
 
-    return (
-        <>
-            <Header />
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-            <section
-                className="container d-flex flex-column justify-content-center vh-100"
-                style={{ marginTop: "80px" }}
-            >
-                <div className="row justify-content-center">
-                    <div className="col-lg-5 col-md-8">
+  return (
+    <>
+      <Header />
 
-                        <div className="card shadow-lg border-0">
-                            <div className="card-body p-5">
+      <div className="auth-wrapper">
+        <div className="auth-card">
+          {/* BACKGROUND IMAGE */}
+          <div className="auth-bg">
+            <img src="/images/forgot_password.png" alt="bg" />
+          </div>
 
-                                <h2 className="fw-bold mb-2">
-                                    Forgot Password
-                                </h2>
-                                <p className="text-muted mb-4">
-                                    Enter your email to receive reset instructions
-                                </p>
+          {/* LEFT TEXT */}
+          <div className="auth-left-text">
+              <h2>
+                Forgot your password?
+                <br />
+                No worries.
+              </h2>
+              <p>We’ll send you a reset link instantly.</p>
+            </div>
 
-                                <form onSubmit={handleEmailSubmit}>
+          {/* RIGHT FORM */}
+          <div className="auth-form-box">
+            <h2>Reset Password</h2>
+            <p className="auth-subtext">
+              Enter your email to receive instructions
+            </p>
 
-                                    <div className="mb-4">
-                                        <label className="form-label">
-                                            Email Address
-                                        </label>
-                                        <input
-                                            type="email"
-                                            className="form-control"
-                                            placeholder="you@example.com"
-                                            value={email}
-                                            onChange={(e) =>
-                                                setEmail(e.target.value)
-                                            }
-                                            required
-                                        />
-                                    </div>
+            <form onSubmit={handleEmailSubmit}>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
 
-                                    <button
-                                        type="submit"
-                                        disabled={isLoading}
-                                        className={`btn w-100 ${
-                                            isLoading
-                                                ? "btn-secondary"
-                                                : "btn-primary"
-                                        }`}
-                                    >
-                                        {isLoading ? (
-                                            <>
-                                                Processing...
-                                                <i className="fas fa-spinner fa-spin ms-2"></i>
-                                            </>
-                                        ) : (
-                                            <>
-                                                Reset Password
-                                                <i className="fas fa-arrow-right ms-2"></i>
-                                            </>
-                                        )}
-                                    </button>
+              <button disabled={isLoading}>
+                {isLoading ? "Sending..." : "Send Reset Link"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
 
-                                </form>
-
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </section>
-
-            <Footer />
-        </>
-    );
+    </>
+  );
 }
 
 export default ForgotPassword;

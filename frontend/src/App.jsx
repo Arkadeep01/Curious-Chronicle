@@ -9,9 +9,8 @@ import About from "./views/pages/About";
 import Contact from "./views/pages/Contact";
 import Register from "./views/auth/Register";
 import Login from "./views/auth/Login";
-import Logout from "./views/auth/Logout";
 import ForgotPassword from "./views/auth/ForgotPassword";
-import CreatePassword from "./views/auth/CreatePassword";
+import CreatePassword from "./views/auth/createPassword";
 import Dashboard from "./views/dashboard/Dashboard";
 import Posts from "./views/dashboard/Posts";
 import AddPost from "./views/dashboard/AddPost";
@@ -73,10 +72,9 @@ function App() {
             {/* Authentication */}
             <Route path="/register/" element={<Register />} />
             <Route path="/login/" element={<Login />} />
-            <Route path="/logout/" element={<Logout />} />
             <Route path="/forgot-password/" element={<ForgotPassword />} />
-            <Route path="/create-password/" element={<CreatePassword />} />
-
+            <Route path="/create-password" element={<CreatePassword />} />
+            
             {/* Dashboard */}
             <Route path="/dashboard/" element={<Dashboard />} />
             <Route path="/posts/" element={<Posts />} />
