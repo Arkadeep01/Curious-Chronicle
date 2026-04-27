@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "../partials/header";
 import Footer from "../partials/footer";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import moment from "moment";
 import apiInstance from "../../utils/axios";
 import Toast from "../../plugin/toast";
@@ -18,11 +18,13 @@ function Detail() {
     });
 
     const param = useParams();
+    const navigate = useNavigate(); 
 
     useEffect(() => {
         const fetchPost = async () => {
             try {
                 setLoading(true);
+
                 const response = await apiInstance.get(`post/details/${param.slug}/`);
 
                 setPost(response.data);
@@ -32,15 +34,22 @@ function Detail() {
                     : [];
 
                 setTags(tagArray);
+
             } catch (error) {
                 console.error("Error fetching post:", error);
+
+                // ✅ redirect to 404 page
+                if (error.response?.status === 404) {
+                    navigate("/not-found");
+                }
+
             } finally {
                 setLoading(false);
             }
         };
 
         fetchPost();
-    }, [param.slug]);
+    }, [param.slug, navigate]);
 
     const handleCreateCommentChange = (e) => {
         setCreateComment({
@@ -85,16 +94,6 @@ function Detail() {
             <>
                 <Header />
                 <div className="text-center mt-5">Loading post...</div>
-                <Footer />
-            </>
-        );
-    }
-
-    if (!post) {
-        return (
-            <>
-                <Header />
-                <div className="text-center mt-5 text-danger">Post not found</div>
                 <Footer />
             </>
         );

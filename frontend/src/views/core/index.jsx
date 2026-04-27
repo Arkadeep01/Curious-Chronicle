@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Search as SearchIcon } from "lucide-react";
 import Header from "../partials/header";
 import Footer from "../partials/footer";
-import { Link } from "react-router-dom";
 import moment from "moment";
 
 import apiInstance from "../../utils/axios";
@@ -12,8 +13,18 @@ function Index() {
     const [posts, setPosts] = useState([]);
     const [category, setCategory] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState("");
+    const navigate = useNavigate();
 
     const user = useUserData(); 
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+      
+        if (!searchQuery.trim()) return;
+      
+        navigate(`/search/?q=${searchQuery}`);
+      };
 
     useEffect(() => {
         let ignore = false;
@@ -103,70 +114,90 @@ function Index() {
 
             {/* HERO SECTION */}
             <section className="hero-section">
-                <div className="container">
+            <div className="container">
 
                 <div className="row align-items-center">
 
-                    {/* LEFT CONTENT */}
-                    <div className="col-md-6">
+                {/* LEFT CONTENT */}
+                <div className="col-md-6">
 
                     <h1 className="hero-title">
-                        Discover Ideas That <span>Shape Thinking</span>
+                    Discover Ideas That <span>Shape Thinking</span>
                     </h1>
 
                     <p className="hero-subtitle">
-                        Explore curated stories on technology, culture, and innovation —
-                        crafted to inform, inspire, and empower curious minds.
+                    Explore curated stories on technology, culture, and innovation —
+                    crafted to inform, inspire, and empower curious minds.
                     </p>
 
+                    {/* SEARCH BAR */}
+                    <form onSubmit={handleSearch} className="hero-search mt-4">
+                    <div className="hero-search-box">
+
+                        <input
+                        type="text"
+                        placeholder="Search articles, topics, authors..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="hero-search-input"
+                        />
+
+                        <button type="submit" className="hero-search-btn">
+                        <SearchIcon size={18} />
+                        </button>
+
+                    </div>
+                    </form>
+
+                    {/* BUTTONS */}
                     <div className="d-flex gap-3 mt-4 flex-wrap">
 
-                        <Link to="/stories" className="hero-btn-primary">
+                    <Link to="/stories" className="hero-btn-primary">
                         Explore Stories →
-                        </Link>
+                    </Link>
 
-                        <Link to="/about" className="hero-btn-secondary">
+                    <Link to="/about" className="hero-btn-secondary">
                         Learn More
-                        </Link>
+                    </Link>
 
                     </div>
 
-                    </div>
+                </div>
 
-                    {/* RIGHT IMAGE */}
-                    <div className="col-md-6 text-center">
+                {/* RIGHT IMAGE */}
+                <div className="col-md-6 text-center">
 
                     <div
-                        className="hero-card"
-                        onMouseMove={(e) => {
+                    className="hero-card"
+                    onMouseMove={(e) => {
                         const img = e.currentTarget.querySelector(".hero-img");
                         const rect = e.currentTarget.getBoundingClientRect();
 
                         const x = e.clientX - rect.left;
                         const y = e.clientY - rect.top;
 
-                        const rotateX = -(y / rect.height - 0.5) * 12;
-                        const rotateY = (x / rect.width - 0.5) * 12;
+                        const rotateX = -(y / rect.height - 0.5) * 16;
+                        const rotateY = (x / rect.width - 0.5) * 16;
 
                         img.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.03)`;
-                        }}
-                        onMouseLeave={(e) => {
+                    }}
+                    onMouseLeave={(e) => {
                         const img = e.currentTarget.querySelector(".hero-img");
                         img.style.transform = "rotateX(0) rotateY(0)";
-                        }}
+                    }}
                     >
-                        <img
+                    <img
                         src="/images/sub-hero.jpg"
                         alt="hero"
                         className="hero-img"
-                        />
-                    </div>
-
+                    />
                     </div>
 
                 </div>
 
                 </div>
+
+            </div>
             </section>
 
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import moment from "moment";
 
 import Header from "../partials/header";
@@ -8,9 +8,15 @@ import apiInstance from "../../utils/axios";
 
 function Search() {
   const [posts, setPosts] = useState([]);
-  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const location = useLocation();
+
+  const [query, setQuery] = useState(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("q") || "";
+  });
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -89,7 +95,7 @@ function Search() {
                   <div className="card-body px-3 pt-3">
                     <h4 className="card-title">
                       <Link
-                        to={`/${post.slug}/`}
+                        to={`/post/${post.slug}/`}
                         className="btn-link text-reset stretched-link fw-bold text-decoration-none"
                       >
                         {post.title?.slice(0, 40)}

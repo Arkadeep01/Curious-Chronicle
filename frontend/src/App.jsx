@@ -21,6 +21,7 @@ import Notifications from "./views/dashboard/Notifications";
 import Profile from "./views/dashboard/Profile";
 import StoriesPage from "./views/dashboard/storiesPage";
 import Press from "./views/pages/Press";
+import NotFound from "./errors/NotFound";
 
 import MainWrapper from "../src/layouts/MainWrapper";
 import "./index.css";
@@ -65,7 +66,7 @@ function App() {
         <MainWrapper>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/:slug/" element={<Detail />} />
+            <Route path="/post/:slug/" element={<Detail />} />
             <Route path="/category/:slug/" element={<Category />} />
             <Route path="/search/" element={<Search />} />
 
@@ -91,6 +92,9 @@ function App() {
             <Route path="/contact/" element={<Contact />} />
             <Route path="/Press" element={<Press />} />
             
+            {/* Error */}
+            <Route path="/not-found" element={<NotFound />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </MainWrapper>
       </BrowserRouter>
