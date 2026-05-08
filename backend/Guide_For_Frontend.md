@@ -1,148 +1,216 @@
-Build a full-stack blog platform UI called "Curious Chronicle" with the following pages, components, and features. Use a clean, modern editorial design — dark navy/indigo sidebar, white content area, with olive/green accents. Use TailwindCSS throughout.
+Build a full-stack blog platform UI called "Curious Chronicle" with the following pages, components, and features. Use a clean, modern editorial design with an indigo/white content style, subtle shadows, and green/olive accents where useful.
+
+This project currently uses React, React Router, Bootstrap-style utility classes, custom CSS, Zustand auth state, cookie-stored JWT tokens, and Django REST Framework APIs.
 
 ---
 
-## 🔐 AUTH PAGES
+## Auth Pages
 
-### 1. Register Page (`/register`)
+### 1. Register Page (`/register/`)
+
 - Fields: Full Name, Email, Password, Confirm Password
-- Submit button → POST /api/v1/user/register/
+- Submit button: `POST /api/v1/user/register/`
+- Payload: `{ full_name, email, password, password2 }`
+- On successful registration, the helper logs the user in, then the current UI redirects to `/login/`
+- Backend registration creates:
+  - a `User` row
+  - a matching `Profile` row through the `post_save` signal
 - Link to Login page
 
-### 2. Login Page (`/login`)
+### 2. Login Page (`/login/`)
+
 - Fields: Email, Password
-- Submit → POST /api/v1/user/token/
-- On success: store access token + refresh token in localStorage
-- Decode JWT to extract: full_name, email, username
+- Submit: `POST /api/v1/user/token/`
+- On success:
+  - store `access_token` and `refresh_token` in cookies
+  - store decoded user/token state in Zustand
+  - decode JWT to extract `user_id`, `full_name`, `email`, `username`, and other claims
 - Link to Forgot Password
 
-### 3. Forgot Password Page (`/forgot-password`)
+### 3. Forgot Password Page (`/forgot-password/`)
+
 - Field: Email
-- Submit → POST /api/v1/user/password-reset/
-- Show success message: "Password reset email sent"
+- Submit: `POST /api/v1/user/password-reset/`
+- Show success message: `"Password reset email sent"`
 
 ### 4. Create New Password Page (`/create-password`)
-- Reads query params: ?otp=...&uid=...&token=...
+
+- Reads query params: `?otp=...&uid=...&token=...`
 - Fields: New Password
-- Submit → POST /api/v1/user/password-change/
-- Payload: { otp, uid, password, token }
+- Submit: `POST /api/v1/user/password-change/`
+- Payload: `{ otp, uid, password, token }`
 
 ---
 
-## 🌐 PUBLIC PAGES
+## Public Pages
 
 ### 5. Home / Blog Feed (`/`)
-- Fetch all active posts → GET /api/v1/post/lists/
-- Display posts as cards with: cover image, title, category badge, author avatar + name, date, view count
-- Sidebar: Category list → GET /api/v1/post/category/list/
-  - Each category shows title, image, post count
-  - Clicking filters posts → GET /api/v1/post/category/posts/{category_slug}/
 
-### 6. Post Detail Page (`/post/{slug}`)
-- Fetch → GET /api/v1/post/details/{slug}/
-- Show: cover image, title, category, tags (as chips), author info (avatar, bio), description/body, view count, like count
-- Like button (heart icon) → POST /api/v1/post/likes-post/ with { user_id, post_id }
-  - Toggle liked/unliked state
-- Bookmark button → POST /api/v1/post/bookmarks/ with { user_id, post_id }
-  - Toggle bookmarked/un-bookmarked state
-- Comments section below the post:
-  - Show existing comments (with reply if any) from post data
-  - Add comment form → POST /api/v1/post/comments/ with { post, name, email, comment }
+- Fetch all active posts: `GET /api/v1/post/lists/`
+- Fetch categories: `GET /api/v1/post/category/list/`
+- Display posts with: cover image, title, category, author profile info, date, and view count
+- Category links use slug-based routes:
+  - UI route: `/category/{slug}/`
+  - API: `GET /api/v1/post/category/posts/{category_slug}/`
+
+### 6. Stories Page (`/stories`)
+
+- Fetch active posts: `GET /api/v1/post/lists/`
+- Display:
+  - trending stories using `TrendingSection`
+  - latest stories
+  - all stories
+
+### 7. Post Detail Page (`/post/{slug}/`)
+
+- Fetch: `GET /api/v1/post/details/{slug}/`
+- Show: cover image, title, category, tags, author info, description/body, view count, like count
+- Like button: `POST /api/v1/post/likes-post/`
+- Like payload: `{ user_id, post_id }`
+- Bookmark button: `POST /api/v1/post/bookmarks/`
+- Bookmark payload: `{ user_id, post_id }`
+- Comments:
+  - show existing comments from post data
+  - add comment with `POST /api/v1/post/comments/`
+  - comment payload: `{ post_id, name, email, comment }`
 
 ---
 
-## 👤 USER PROFILE PAGE (`/profile/{user_id}`)
-- Fetch → GET /api/v1/user/profile/{user_id}
-- Display: avatar, full name, bio, about, country, facebook, twitter links
-- Edit mode (PUT /api/v1/user/profile/{user_id}):
-  - Fields: full_name, bio, about, country, facebook, twitter, image upload
+## User Profile Page
+
+### Profile Settings (`/profile/`)
+
+- The frontend route is currently `/profile/`
+- The page gets `user_id` from the decoded JWT via `useUserData()`
+- Fetch: `GET /api/v1/user/profile/{user_id}/`
+- Display/edit:
+  - avatar/image
+  - full_name
+  - bio
+  - about
+  - country
+  - facebook
+  - twitter
+- Update: `PATCH /api/v1/user/profile/{user_id}/`
+- Uses `multipart/form-data` when uploading an image
 
 ---
 
-## 📊 AUTHOR DASHBOARD (protected, `/dashboard`)
+## Author Dashboard
 
-Use a sidebar layout with dark indigo sidebar (matching jazzmin admin theme).
+Dashboard pages use the decoded JWT user id from `useUserData()`. The frontend currently uses these routes:
 
-Sidebar links:
-- Dashboard (stats overview)
-- My Posts
-- Comments
-- Notifications
-- Create Post
+- Dashboard: `/dashboard/`
+- My Posts: `/posts/`
+- Create Post: `/addpost/`
+- Edit Post: `/edit-post/{id}/`
+- Comments: `/comments/`
+- Notifications: `/notifications/`
+- Profile: `/profile/`
 
-### Dashboard Home (`/dashboard`)
-- 4 stat cards → GET /api/v1/author/dashboard/stats/{user_id}/
-  - 👁 Total Views
-  - 📝 Total Posts  
-  - ❤️ Total Likes
-  - 🔖 Total Bookmarks
-- Use icons and large numbers, styled like an analytics dashboard
+### Dashboard Home (`/dashboard/`)
 
-### My Posts (`/dashboard/posts`)
-- Fetch → GET /api/v1/author/dashboard/post-list/{user_id}/
-- Table with columns: Title, Category, Status (Active/Draft/Disabled badge), Date
-- Each row has Edit and Delete buttons
-- Delete → DELETE /api/v1/author/dashboard/post-detail/{user_id}/{post_id}/
+- Stats API: `GET /api/v1/author/dashboard/stats/{user_id}/`
+- Display:
+  - Total Views
+  - Total Posts
+  - Total Likes
+  - Total Bookmarks
 
-### Create Post (`/dashboard/create-post`)
+### My Posts (`/posts/`)
+
+- Fetch: `GET /api/v1/author/dashboard/post-list/{user_id}/`
+- Table/card list should show: Title, Category, Status, Date
+- Delete: `DELETE /api/v1/author/dashboard/post-detail/{user_id}/{post_id}/`
+
+### Create Post (`/addpost/`)
+
 - Form fields:
-  - Title (text)
-  - Description (rich textarea)
-  - Category (dropdown, fetched from /api/v1/post/category/list/)
-  - Tags (comma-separated text input)
-  - Cover Image (file upload with preview)
-  - Status (select: Active / Draft / Disabled)
-- Submit → POST /api/v1/author/dashboard/post-create/
-- Payload: { user_id, title, image, description, tags, category, post_status }
+  - Title
+  - Content/editor body for writing, preview, and published description
+  - Category dropdown from `GET /api/v1/post/category/list/`
+  - Tags
+  - Cover Image with preview
+  - Status: Draft, Scheduled, Active/Public
+- Preview route: `/preview/`
+- Submit: `POST /api/v1/author/dashboard/post-create/`
+- Backend payload currently used:
+  - `user_id`
+  - `title`
+  - `slug`
+  - `image`
+  - `description` from the frontend content/editor body
+  - `tags`
+  - `category` as category id
+  - `post_status`
+- Note: the frontend `content` field is submitted as backend `description`; there is no separate subtitle field in the create-post UI.
+- Backend post creation attaches `profile` automatically from the user profile.
 
-### Edit Post (`/dashboard/post/{post_id}`)
-- Pre-fill form → GET /api/v1/author/dashboard/post-detail/{user_id}/{post_id}/
-- Same form as Create Post
-- Submit → PATCH /api/v1/author/dashboard/post-detail/{user_id}/{post_id}/
+### Edit Post (`/edit-post/{id}/`)
 
-### Comments (`/dashboard/comments`)
-- Fetch → GET /api/v1/author/dashboard/comment-list/{user_id}/
-- Table: Post title, Commenter name, Email, Comment text, Reply (if any)
-- Each row has a "Reply" button → opens inline text area
-- Submit reply → POST /api/v1/author/dashboard/reply-comment/ with { comment_id, reply }
+- Pre-fill form: `GET /api/v1/author/dashboard/post-detail/{user_id}/{post_id}/`
+- Submit: `PATCH /api/v1/author/dashboard/post-detail/{user_id}/{post_id}/`
+- Uses the same backend fields as Create Post.
 
-### Notifications (`/dashboard/notifications`)
-- Fetch unseen → GET /api/v1/author/dashboard/noti-list/{user_id}/
-- List of notifications: Post title, Type (Like / Comment / Bookmark), Date
-- "Mark as Seen" button per notification → POST /api/v1/author/dashboard/noti-mark-seen/ with { noti_id }
-- Show a badge count on the sidebar Notifications link
+### Comments (`/comments/`)
+
+- Fetch: `GET /api/v1/author/dashboard/comment-list/{user_id}/`
+- Show: post title, commenter name, email, comment text, reply if any
+- Reply submit: `POST /api/v1/author/dashboard/reply-comment/`
+- Reply payload: `{ comment_id, reply }`
+
+### Notifications (`/notifications/`)
+
+- Fetch unseen: `GET /api/v1/author/dashboard/noti-list/{user_id}/`
+- Show: post title, type, date
+- Mark as seen: `POST /api/v1/author/dashboard/noti-mark-seen/`
+- Payload: `{ noti_id }`
 
 ---
 
-## 🧩 SHARED COMPONENTS
+## Shared Components
 
-- **Navbar**: Logo ("Curious Chronicle"), nav links (Home, Categories), Login/Register or user avatar dropdown (Profile, Dashboard, Logout)
-- **Category Badge**: colored pill with category name
-- **Post Card**: image thumbnail, title, category, author avatar + name, date, view count
-- **Toast notifications** for all API success/error responses
-- **Loading spinners** for all async fetches
-- **Protected Route wrapper**: redirect to /login if no token in localStorage
+- Navbar/Header:
+  - Logo: "Curious Chronicle"
+  - Stories link
+  - Shows Login/Register links when unauthenticated
+  - Shows profile dropdown when Zustand auth state has a valid access token
+  - Dropdown links: Profile, Logout
+- `TrendingSection` lives in `frontend/src/components/TrendingSection.jsx`
+- `Preview` lives in `frontend/src/components/Preview.jsx`
+- Toast notifications are used for API success/error responses
+- Loading states should be shown for async fetches
+- Protected behavior should check valid auth state/tokens, not only the visual profile icon
 
 ---
 
-## 🎨 DESIGN SYSTEM
+## Design System
 
-- Primary color: Indigo (#4F46E5)
-- Accent: Olive green (#84923A)
-- Background: White / Light gray (#F9FAFB)
-- Sidebar: Dark indigo (#1E1B4B)
-- Typography: Inter or similar clean sans-serif
+- Primary color: Indigo `#4F46E5`
+- Accent: Olive green `#84923A`
+- Background: White / Light gray `#F9FAFB`
+- Sidebar/dashboard accent: Dark indigo `#1E1B4B`
+- Typography: clean sans-serif
 - Rounded cards with subtle shadows
-- Status badges: green (Active), yellow (Draft), red (Disabled)
+- Status badges:
+  - Active/Public: green
+  - Draft: yellow/neutral
+  - Disabled: red
 
 ---
 
-## ⚙️ TECHNICAL NOTES
+## Technical Notes
 
-- Base API URL: `http://localhost:8000/api/v1/`
-- JWT auth: attach `Authorization: Bearer <access_token>` header on protected requests
-- Token refresh: POST /api/v1/user/token/refresh/ with { refresh }
-- All image URLs served from `http://localhost:8000/media/`
-- Use axios with an interceptor for token attachment and refresh
-- Use React Router for all routing
-- Use React Context or Zustand for auth state (user info from decoded JWT)
+- Base API URL in frontend axios: `http://127.0.0.1:8000/api/v1/`
+- Backend docs may also refer to: `http://localhost:8000/api/v1/`
+- JWT auth:
+  - access token cookie: `access_token`
+  - refresh token cookie: `refresh_token`
+  - Zustand persisted store: `auth-storage`
+- Token refresh endpoint: `POST /api/v1/user/token/refresh/`
+- Refresh payload: `{ refresh }`
+- Decoded JWT should provide `user_id`; frontend may safely fall back to `id`
+- Image URLs are served from Django media, usually under `http://127.0.0.1:8000/media/`
+- Use React Router for routing
+- Use Zustand for auth state and decoded JWT user info
+- Clear both cookies and Zustand auth state on logout

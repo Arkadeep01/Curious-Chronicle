@@ -483,9 +483,11 @@ class DashboardPostCreateAPIView(generics.CreateAPIView):
 
         user = api_models.User.objects.get(id=user_id)
         category = api_models.Category.objects.get(id=category_id)
+        profile, _ = api_models.Profile.objects.get_or_create(user=user)
         
         post = api_models.Post.objects.create(
             user=user,
+            profile=profile,
             title=title,
             image=image,
             description=description,
