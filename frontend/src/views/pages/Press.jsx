@@ -1,8 +1,14 @@
 import React from "react";
 import Header from "../partials/header";
 import Footer from "../partials/footer";
+import { useLocation } from "react-router-dom";
 
 function Press() {
+  const location = useLocation();
+
+  if (location.pathname !== "/press") {
+    window.scrollTo(0, 0);
+  }
   return (
     <>
       <Header />

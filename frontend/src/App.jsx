@@ -21,6 +21,7 @@ import Profile from "./views/dashboard/Profile";
 import StoriesPage from "./views/dashboard/storiesPage";
 import Press from "./views/pages/Press";
 import NotFound from "./errors/NotFound";
+import Preview from "./components/Preview";
 
 import MainWrapper from "../src/layouts/MainWrapper";
 import "./index.css";
@@ -65,9 +66,11 @@ function App() {
         <MainWrapper>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/post/:slug/" element={<Detail />} />
-            <Route path="/category/:slug/" element={<Category />} />
+            <Route path="/post/:blog/" element={<Detail />} />
+            <Route path="/category/:blog/" element={<Category />} />
+            <Route path="/category/" element={<Category />} />
             <Route path="/search/" element={<Search />} />
+            <Route path="/preview/" element={<Preview />} />
 
             {/* Authentication */}
             <Route path="/register/" element={<Register />} />
@@ -78,7 +81,7 @@ function App() {
             {/* Dashboard */}
             <Route path="/dashboard/" element={<Dashboard />} />
             <Route path="/posts/" element={<Posts />} />
-            <Route path="/add-post/" element={<AddPost />} />
+            <Route path="/addpost/" element={<AddPost />} />
             <Route path="/edit-post/:id/" element={<EditPost />} />
             <Route path="/comments/" element={<Comments />} />
             <Route path="/notifications/" element={<Notifications />} />

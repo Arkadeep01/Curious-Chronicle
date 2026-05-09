@@ -1,17 +1,21 @@
 import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import jwtDecode from "jwt-decode";
+import { setUser as restoreUserSession } from "../utils/auth";
+import { useAuthStore } from "../store/auth";
 
 function useUserData() {
   const [user, setUser] = useState(null);
+  const storeUser = useAuthStore((state) => state.user);
 
   useEffect(() => {
-    const checkUser = () => {
+    const checkUser = async () => {
       try {
         const accessToken = Cookies.get("access_token");
 
         if (!accessToken) {
-          setUser(null);
+          await restoreUserSession();
+          setUser(useAuthStore.getState().user);
           return;
         }
 
@@ -19,9 +23,8 @@ function useUserData() {
 
         // Ensure exp exists before checking
         if (decoded?.exp && decoded.exp * 1000 < Date.now()) {
-          Cookies.remove("access_token");
-          Cookies.remove("refresh_token");
-          setUser(null);
+          await restoreUserSession();
+          setUser(useAuthStore.getState().user);
           return;
         }
 
@@ -39,7 +42,7 @@ function useUserData() {
     return () => clearInterval(interval);
   }, []);
 
-  return user;
+  return storeUser || user;
 }
 
 export default useUserData;

@@ -118,8 +118,8 @@ function Register() {
 
           {/* RIGHT SIDE (FORM) */}
           <div className="register-right">
-            <h2>Create an account</h2>
-            <p className="login-link">
+            <h2 style={{color: "goldenrod"}}>Create an account</h2>
+            <p className="login-link" style={{color: "whitesmoke"}}>
               Already have an account? <Link to="/login/">Log in</Link>
             </p>
 

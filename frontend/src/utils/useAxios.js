@@ -1,7 +1,8 @@
 import axios from 'axios';
-import { getRefreshToken, isAccessTokenExpired, setAuthUser } from './auth'; 
+import { clearAuthSession, getRefreshToken, isAccessTokenExpired, setAuthUser } from './auth'; 
 import { API_BASE_URL } from './constants';
 import Cookies from 'js-cookie';
+import { useAuthStore } from '../store/auth';
 
 // Define a custom Axios instance creator function
 const useAxios = () => {
@@ -17,7 +18,7 @@ const useAxios = () => {
 
             // Always get the latest tokens (avoid stale closure)
             let accessToken = Cookies.get('access_token');
-            let refreshToken = Cookies.get('refresh_token');
+            let refreshToken = Cookies.get('refresh_token') || useAuthStore.getState().refreshToken;
 
             // CHECK TOKEN EXPIRY
             if (accessToken && !isAccessTokenExpired(accessToken)) {
@@ -37,8 +38,7 @@ const useAxios = () => {
                     console.error('Token refresh failed:', error);
 
                     // Optional: clear auth & redirect
-                    Cookies.remove('access_token');
-                    Cookies.remove('refresh_token');
+                    clearAuthSession();
                     window.location.href = '/login';
 
                     return Promise.reject(error);
@@ -56,8 +56,7 @@ const useAxios = () => {
 
             // If unauthorized → force logout
             if (error.response?.status === 401) {
-                Cookies.remove('access_token');
-                Cookies.remove('refresh_token');
+                clearAuthSession();
 
                 window.location.href = '/login';
             }

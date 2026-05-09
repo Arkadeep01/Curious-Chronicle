@@ -76,7 +76,7 @@ function Footer() {
           <div className="col-md-3">
             <h6 className="text-uppercase text-light mb-3">Experiences</h6>
 
-            <Link to="/add-post" className="text-decoration-none">
+            <Link to="/addpost" className="text-decoration-none">
               <p className="text-muted small">Writing</p> 
             </Link>
             <p className="text-muted small">Storytelling</p>

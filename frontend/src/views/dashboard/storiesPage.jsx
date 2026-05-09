@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import Header from "../partials/header";
 import Footer from "../partials/footer";
-import TrendingSection from "../core/components/TrendingSection";
+import TrendingSection from "../../components/TrendingSection";
 
 function StoriesPage() {
   const [posts, setPosts] = useState([]);
@@ -13,7 +13,6 @@ function StoriesPage() {
       .catch((err) => console.log(err));
   }, []);
 
-  // 🔥 TRENDING LOGIC
   const trendingPosts = useMemo(() => {
     return [...posts].sort((a, b) => {
       const scoreA = (a.views || 0) + (a.Likes?.length || 0) * 3;
@@ -22,7 +21,6 @@ function StoriesPage() {
     });
   }, [posts]);
 
-  // 🆕 LATEST POSTS
   const latestPosts = useMemo(() => {
     return [...posts].sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [posts]);
@@ -33,12 +31,10 @@ function StoriesPage() {
 
       <div className="container mt-4">
 
-        {/* 🔥 TRENDING */}
         <section id="trending-section">
           <TrendingSection posts={trendingPosts} showHeader={true} />
         </section>
 
-        {/* 🆕 LATEST */}
         <section className="mt-5">
           <h2>Latest Stories </h2>
           <div className="row mt-3">

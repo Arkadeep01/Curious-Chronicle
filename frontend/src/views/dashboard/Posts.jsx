@@ -76,7 +76,7 @@ function Posts() {
                                 </span>
                             </h5>
 
-                            <Link to="/add-post/" className="btn btn-primary btn-sm">
+                            <Link to="/addpost/" className="btn btn-primary btn-sm">
                                 Add New
                             </Link>
                         </div>

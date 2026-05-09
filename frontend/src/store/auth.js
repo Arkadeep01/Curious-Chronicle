@@ -37,6 +37,7 @@ const useAuthStore = create(
                         user: null,
                         accessToken: null,
                         refreshToken: null,
+                        loading: false,
                     });
                 },
                 setLoading: (loading) => set({ loading }),      // Update loading state

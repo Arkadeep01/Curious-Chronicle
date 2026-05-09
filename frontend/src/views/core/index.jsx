@@ -3,26 +3,26 @@ import { Link } from "react-router-dom";
 import Header from "../partials/header";
 import Footer from "../partials/footer";
 
-import TrendingSection from "./components/TrendingSection";
+import TrendingSection from "../../components/TrendingSection";
 import apiInstance from "../../utils/axios";
 
 function Index() {
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState([]);
-  const [, setCategory] = useState([]);
+  const [category, setCategory] = useState([]);
 
   useEffect(() => {
     let ignore = false;
-  
+
     const loadData = async () => {
       try {
         setLoading(true);
-  
+
         const [postRes, catRes] = await Promise.all([
           apiInstance.get("post/lists/"),
           apiInstance.get("post/category/list/"),
         ]);
-  
+
         if (!ignore) {
           setPosts(postRes.data);
           setCategory(catRes.data);
@@ -33,13 +33,12 @@ function Index() {
         if (!ignore) setLoading(false);
       }
     };
-  
+
     loadData();
-  
+
     return () => {
       ignore = true;
     };
-  
   }, []);
 
   if (loading) {
@@ -115,7 +114,60 @@ function Index() {
         </div>
       </section>
 
-      <TrendingSection posts={posts} />
+      {/* CATEGORY SIDEBAR SECTION */}
+      <section className="category-section">
+        <div className="container-fluid px-4 px-xl-5">
+          <div className="row gx-5 gy-5">
+            {/* SIDEBAR */}
+            <div className="col-lg-3">
+              <div className="category-card">
+                <div className="category-header">
+                  <span>↗</span>
+                  <h5>CATEGORIES</h5>
+                </div>
+
+                <div className="category-list">
+                  <Link to="/stories" className="category-item active">
+                    <span>All Stories</span>
+                    <span>{posts?.length || 0}</span>
+                  </Link>
+
+                  {category.map((c) => (
+                    <Link
+                      key={c.id}
+                      to={`/category/${c.slug}/`}
+                      className="category-item"
+                    >
+                      <span>{c.title}</span>
+                      <span>{c.post_count || 0}</span>
+                    </Link>
+                  ))}
+                </div>
+
+                <div className="author-box">
+                  <h4>Become an author</h4>
+
+                  <p>Share your thoughts with thousands of curious readers.</p>
+
+                  <Link to="/addpost" className="author-btn">
+                    Start writing
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* TRENDING SECTION */}
+            <div className="col-lg-9">
+              <TrendingSection
+                posts={posts}
+                showHeader={true}
+                withContainer={false}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <Footer />
     </>
   );
