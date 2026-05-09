@@ -3,7 +3,6 @@ import { Route, Routes, BrowserRouter } from "react-router-dom";
 
 import Index from "./views/core/index";
 import Detail from "./views/core/Details";
-import Search from "./views/core/Search";
 import Category from "./views/core/Category";
 import About from "./views/pages/About";
 import Contact from "./views/pages/Contact";
@@ -15,7 +14,6 @@ import Dashboard from "./views/dashboard/Dashboard";
 import Posts from "./views/dashboard/Posts";
 import AddPost from "./views/dashboard/AddPost";
 import EditPost from "./views/dashboard/EditPost";
-import Comments from "./views/dashboard/Comments";
 import Notifications from "./views/dashboard/Notifications";
 import Profile from "./views/dashboard/Profile";
 import StoriesPage from "./views/dashboard/storiesPage";
@@ -69,7 +67,6 @@ function App() {
             <Route path="/post/:blog/" element={<Detail />} />
             <Route path="/category/:blog/" element={<Category />} />
             <Route path="/category/" element={<Category />} />
-            <Route path="/search/" element={<Search />} />
             <Route path="/preview/" element={<Preview />} />
 
             {/* Authentication */}
@@ -83,7 +80,6 @@ function App() {
             <Route path="/posts/" element={<Posts />} />
             <Route path="/addpost/" element={<AddPost />} />
             <Route path="/edit-post/:id/" element={<EditPost />} />
-            <Route path="/comments/" element={<Comments />} />
             <Route path="/notifications/" element={<Notifications />} />
             <Route path="/profile/" element={<Profile />} />
             <Route path="/stories" element={<StoriesPage />} />

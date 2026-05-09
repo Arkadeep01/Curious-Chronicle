@@ -1,163 +1,108 @@
-import React, { useState, useEffect } from "react";
-import Header from "../partials/header";
-import Footer from "../partials/footer";
+import React, { useState } from "react";
+import { Send } from "lucide-react";
+import moment from "moment";
 
 import apiInstance from "../../utils/axios";
-import Moment from "../../plugin/moment";
 import Toast from "../../plugin/toast";
-import useUserData from "../../plugin/useUserData";
 
-function Comments() {
-    const [comments, setComments] = useState([]);
-    const [replyMap, setReplyMap] = useState({}); 
-    const user = useUserData();
-    const userId = user?.user_id;
-    
-    useEffect(() => {
-      let ignore = false;
-  
-      const loadComments = async () => {
-          try {
-              const response = await apiInstance.get(`author/dashboard/comment-list/${userId}/`);
-  
-              if (!ignore) {
-                  setComments(response.data); 
-              }
-          } catch (err) {
-              console.error(err);
-              Toast("error", "Failed to load comments");
-          }
-      };
-  
-      if (userId) loadComments();
-  
-      return () => {
-          ignore = true;
-      };
-  }, [userId]);
+function PostComments({ post, setPost, param }) {
+  const [createComment, setCreateComment] = useState({
+    comment: "",
+  });
 
-    const handleReplyChange = (id, value) => {
-        setReplyMap((prev) => ({
-            ...prev,
-            [id]: value,
-        }));
-    };
-
-    const handleSubmitReply = async (commentId) => {
-      try {
-          const replyText = replyMap[commentId];
-  
-          if (!replyText) {
-              Toast("error", "Reply cannot be empty");
-              return;
-          }
-  
-          await apiInstance.post("author/dashboard/reply-comment/", {
-              comment_id: commentId,
-              reply: replyText,
-          });
-  
-          Toast("success", "Reply sent");
-  
-          // clear only that reply
-          setReplyMap((prev) => ({
-              ...prev,
-              [commentId]: "",
-          }));
-  
-          const response = await apiInstance.get(`author/dashboard/comment-list/${userId}/`);
-          setComments(response.data);
-  
-      } catch (err) {
-          console.error(err);
-          Toast("error", "Failed to send reply");
-      }
+  const handleCreateCommentChange = (e) => {
+    setCreateComment({
+      ...createComment,
+      [e.target.name]: e.target.value,
+    });
   };
-    return (
-        <>
-            <Header />
 
-            <section className="py-5">
-                <div className="container">
-                    <div className="card">
-                        <div className="card-header">
-                            <h3>Comments</h3>
-                            <small>Manage your comments</small>
-                        </div>
+  const handleCreateCommentSubmit = async (e) => {
+    e.preventDefault();
 
-                        <div className="card-body">
-                            <ul className="list-group">
+    try {
+      const payload = {
+        post_id: post?.id,
+        comment: createComment.comment,
+      };
 
-                                {comments.map((c) => (
-                                    <li key={c.id} className="list-group-item mb-3 shadow-sm rounded">
+      await apiInstance.post(`post/comments/`, payload);
 
-                                        <div className="d-flex">
-                                            <img
-                                                src="https://as1.ftcdn.net/v2/jpg/03/53/11/00/1000_F_353110097_nbpmfn9iHlxef4EDIhXB1tdTD0lcWhG9.jpg"
-                                                className="rounded-circle me-3"
-                                                style={{ width: 60, height: 60 }}
-                                                alt=""
-                                            />
+      Toast("success", "Comment posted successfully");
 
-                                            <div className="w-100">
-                                                <h5>{c.name}</h5>
-                                                <small>{Moment(c.date)}</small>
+      setCreateComment({
+        comment: "",
+      });
 
-                                                <p className="mt-2">
-                                                    <strong>Comment → </strong> {c.comment}
-                                                </p>
+      const res = await apiInstance.get(`post/details/${param.blog}/`);
 
-                                                <p className="mt-2">
-                                                    <strong>Response → </strong>
-                                                    {c.reply ? (
-                                                        c.reply
-                                                    ) : (
-                                                        <span className="text-danger ms-2">No reply</span>
-                                                    )}
-                                                </p>
+      setPost(res.data);
+    } catch (error) {
+      console.log(error);
 
-                                                {/* Collapse */}
-                                                <button
-                                                    className="btn btn-outline-secondary btn-sm"
-                                                    data-bs-toggle="collapse"
-                                                    data-bs-target={`#reply-${c.id}`}
-                                                >
-                                                    Reply
-                                                </button>
+      Toast("error", "Failed to post comment");
+    }
+  };
 
-                                                <div className="collapse mt-3" id={`reply-${c.id}`}>
-                                                    <textarea
-                                                        className="form-control mb-2"
-                                                        rows="3"
-                                                        placeholder="Write reply..."
-                                                        value={replyMap[c.id] || ""}
-                                                        onChange={(e) =>
-                                                            handleReplyChange(c.id, e.target.value)
-                                                        }
-                                                    />
+  return (
+    <div className="detail-comments-section" id="comments">
+      <h2 className="conversation-title">Conversation</h2>
 
-                                                    <button
-                                                        onClick={() => handleSubmitReply(c.id)}
-                                                        className="btn btn-primary btn-sm"
-                                                    >
-                                                        Send
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
+      {/* COMMENT BOX */}
+      <div className="conversation-input-wrapper">
+        <div className="conversation-avatar">G</div>
 
-                                    </li>
-                                ))}
+        <form
+          onSubmit={handleCreateCommentSubmit}
+          className="conversation-form"
+        >
+          <textarea
+            name="comment"
+            value={createComment.comment}
+            onChange={handleCreateCommentChange}
+            placeholder="Share your thoughts..."
+            className="conversation-textarea"
+            required
+          />
 
-                            </ul>
-                        </div>
-                    </div>
+          <button type="submit" className="conversation-submit-btn">
+            <Send size={16} />
+
+            <span>Post</span>
+          </button>
+        </form>
+      </div>
+
+      {/* COMMENTS LIST */}
+      <div className="conversation-comments-list">
+        {post?.comments?.map((comment, index) => (
+          <div key={index} className="conversation-comment-item">
+            <div className="conversation-avatar">
+              {comment?.name?.charAt(0)?.toUpperCase()}
+            </div>
+
+            <div className="conversation-comment-content">
+              <div className="conversation-comment-top">
+                <h5>{comment.name}</h5>
+
+                <span>{moment(comment.date).format("MMM D, YYYY")}</span>
+              </div>
+
+              <p>{comment.comment}</p>
+
+              {comment.reply && (
+                <div className="conversation-author-reply">
+                  <strong>Author Reply</strong>
+
+                  <p>{comment.reply}</p>
                 </div>
-            </section>
-
-            <Footer />
-        </>
-    );
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
-export default Comments;
+export default PostComments;

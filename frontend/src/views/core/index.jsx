@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Header from "../partials/header";
 import Footer from "../partials/footer";
 
-import TrendingSection from "../../components/TrendingSection";
+import TrendingSection from "../../components/storySection";
 import apiInstance from "../../utils/axios";
 
 function Index() {

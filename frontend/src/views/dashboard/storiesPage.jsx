@@ -1,74 +1,89 @@
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
+
 import Header from "../partials/header";
 import Footer from "../partials/footer";
-import TrendingSection from "../../components/TrendingSection";
+
+import StorySection from "../../components/StorySection";
+import Search from "../../components/Search";
 
 function StoriesPage() {
   const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filteredPosts, setFilteredPosts] = useState([]);
 
   useEffect(() => {
-    axios.get("http://127.0.0.1:8000/api/v1/post/lists/")
-      .then((res) => setPosts(res.data))
-      .catch((err) => console.log(err));
+    axios
+      .get("http://127.0.0.1:8000/api/v1/post/lists/")
+      .then((res) => {
+        setPosts(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
+  // TRENDING
   const trendingPosts = useMemo(() => {
-    return [...posts].sort((a, b) => {
+    return [...filteredPosts].sort((a, b) => {
       const scoreA = (a.views || 0) + (a.Likes?.length || 0) * 3;
+
       const scoreB = (b.views || 0) + (b.Likes?.length || 0) * 3;
+
       return scoreB - scoreA;
     });
-  }, [posts]);
+  }, [filteredPosts]);
 
+  // POPULAR
+  const popularPosts = useMemo(() => {
+    return [...filteredPosts].sort((a, b) => (b.views || 0) - (a.views || 0));
+  }, [filteredPosts]);
+
+  // LATEST
   const latestPosts = useMemo(() => {
-    return [...posts].sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [posts]);
+    return [...filteredPosts].sort(
+      (a, b) => new Date(b.date) - new Date(a.date),
+    );
+  }, [filteredPosts]);
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+
+        <div className="container py-5 text-center">
+          <h3>Loading stories...</h3>
+        </div>
+
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
       <Header />
 
-      <div className="container mt-4">
+      <div className="stories-page">
+        {/* SEARCH */}
+        <div className="container mt-4 search-stories">
+          <Search posts={posts} onFilter={setFilteredPosts} />
+        </div>
 
-        <section id="trending-section">
-          <TrendingSection posts={trendingPosts} showHeader={true} />
-        </section>
+        {/* TRENDING */}
+        <StorySection title="Trending Stories" posts={trendingPosts} />
 
-        <section className="mt-5">
-          <h2>Latest Stories </h2>
-          <div className="row mt-3">
-            {latestPosts.slice(0, 6).map((post) => (
-              <div className="col-md-4 mb-4" key={post.id}>
-                <div className="card h-100">
-                  <img src={post.image} className="card-img-top" alt="" />
-                  <div className="card-body">
-                    <h5>{post.title}</h5>
-                    <p>{post.description?.slice(0, 80)}...</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* POPULAR */}
+        <StorySection title="Popular Stories" posts={popularPosts} />
 
-        {/* 📚 ALL STORIES */}
-        <section className="mt-5 mb-5">
-          <h2>All Stories </h2>
-          <div className="row mt-3">
-            {posts.map((post) => (
-              <div className="col-md-3 mb-4" key={post.id}>
-                <div className="card h-100">
-                  <img src={post.image} className="card-img-top" alt="" />
-                  <div className="card-body">
-                    <h6>{post.title?.slice(0, 40)}...</h6>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* LATEST */}
+        <StorySection title="Latest Stories" posts={latestPosts} />
 
+        {/* ALL */}
+        <StorySection title="All Stories" posts={posts} />
       </div>
 
       <Footer />
