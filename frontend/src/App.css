@@ -1,136 +1,352 @@
-/* ===== ROOT LAYOUT ===== */
-#root {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0;
+/* Responsive safety layer.
+   Keep this file imported after index.css so these rules only stabilize layout. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-/* ===== BODY RESET ===== */
+html {
+  width: 100%;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
-  background-color: #f8f9fa;
-  color: #212529;
+  width: 100%;
+  min-width: 320px;
+  overflow-x: hidden;
   margin: 0;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f5f7fb;
+  color: #111827;
 }
 
-/* ===== LINKS ===== */
-a {
-  text-decoration: none;
-  color: inherit;
+#root {
+  width: 100%;
+  min-height: 100vh;
 }
 
-a:hover {
-  color: #0d6efd;
-}
-
-/* ===== NAVBAR ===== */
-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background: #ffffff;
-}
-
-/* ===== CARD (GLOBAL) ===== */
-.card {
-  border: none;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-  transition: all 0.25s ease;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
-}
-
-/* ===== BUTTONS ===== */
-.btn {
-  border-radius: 8px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.btn-primary {
-  background-color: #0d6efd;
-  border: none;
-}
-
-.btn-primary:hover {
-  background-color: #0b5ed7;
-}
-
-/* ===== FORM INPUTS ===== */
-.form-control,
-.form-select {
-  border-radius: 8px;
-  padding: 10px 12px;
-  border: 1px solid #dee2e6;
-  transition: border 0.2s ease, box-shadow 0.2s ease;
-}
-
-.form-control:focus,
-.form-select:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
-}
-
-/* ===== IMAGES ===== */
-img {
+img,
+svg,
+video,
+canvas,
+iframe {
   max-width: 100%;
-  display: block;
-  border-radius: 8px;
 }
 
-/* ===== TYPOGRAPHY ===== */
-h1, h2, h3, h4, h5 {
-  font-weight: 600;
+img,
+video {
+  height: auto;
 }
 
-p {
-  color: #6c757d;
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+  font: inherit;
 }
 
-/* ===== BADGES ===== */
-.badge {
-  border-radius: 6px;
-  padding: 5px 10px;
+textarea {
+  resize: vertical;
 }
 
-/* ===== TABLE ===== */
-.table {
-  border-radius: 10px;
-  overflow: hidden;
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* ===== FOOTER ===== */
-footer {
-  background: #ffffff;
-  border-top: 1px solid #eee;
+.container,
+.container-fluid {
+  width: 100%;
 }
 
-/* ===== UTILITIES ===== */
-.shadow-soft {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+.container-fluid {
+  max-width: 1500px;
+  margin-inline: auto;
 }
 
-.rounded-xl {
-  border-radius: 16px;
+.detail-title,
+.posts-page-title,
+.dashboard-title,
+.profile-name,
+.author-profile-name,
+.section-title,
+.trending-title {
+  overflow-wrap: anywhere;
 }
 
-/* ===== SCROLLBAR (MODERN LOOK) ===== */
-::-webkit-scrollbar {
-  width: 8px;
+.detail-content,
+.detail-content *,
+.edit-post-html-editor,
+.edit-post-html-preview,
+.profile-about-text,
+.post-card-title,
+.dashboard-top-post h3,
+.dashboard-inbox-item p {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #d6d6d6;
-  border-radius: 10px;
+.editor-toolbar,
+.posts-toolbar,
+.profile-custom-tabs,
+.detail-action-bar {
+  scrollbar-width: thin;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #bfbfbf;
+@media (max-width: 1200px) {
+  .login-container,
+  .register-container {
+    width: min(100%, 920px);
+  }
+
+  .write-layout,
+  .dashboard-analytics-grid,
+  .dashboard-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-grid-layout {
+    grid-template-columns: 300px minmax(0, 1fr);
+  }
+
+  .dashboard-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
+@media (max-width: 992px) {
+  .login-container,
+  .register-container {
+    width: min(100%, 720px);
+  }
 
+  .login-left,
+  .login-right {
+    width: 100%;
+  }
 
+  .login-container {
+    flex-direction: column;
+  }
+
+  .profile-grid-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-sidebar-sticky {
+    position: static;
+  }
+
+  .profile-actions-grid,
+  .profile-form-grid,
+  .dashboard-actions-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .author-posts-top,
+  .posts-topbar,
+  .posts-card-header,
+  .dashboard-hero,
+  .detail-author-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .posts-toolbar,
+  .dashboard-hero-actions {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .premium-dashboard,
+  .posts-page,
+  .profile-page-wrapper,
+  .author-profile-page,
+  .detail-page {
+    padding-inline: 12px;
+  }
+
+  .posts-page {
+    margin-inline: 0;
+  }
+
+  .dashboard-metrics-grid,
+  .dashboard-streak-grid,
+  .posts-grid,
+  .profile-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .posts-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .posts-search-box,
+  .posts-sort-box {
+    width: 100%;
+  }
+
+  .posts-search-box input,
+  .posts-sort-box select {
+    width: 100%;
+  }
+
+  .posts-main-card,
+  .dashboard-panel,
+  .profile-card,
+  .profile-notifications-card {
+    border-radius: 20px;
+  }
+
+  .posts-main-card,
+  .dashboard-panel {
+    padding: 18px;
+  }
+
+  .dashboard-panel-header,
+  .profile-notifications-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dashboard-top-post,
+  .dashboard-inbox-item {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .dashboard-top-post strong,
+  .dashboard-inbox-item > span,
+  .dashboard-inbox-item button {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .detail-author-left,
+  .detail-author-stats,
+  .post-card-actions,
+  .author-profile-actions {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .detail-action-bar {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .detail-action-btn {
+    flex: 1 0 auto;
+  }
+}
+
+@media (max-width: 576px) {
+  .container,
+  .container-fluid {
+    padding-inline: 12px;
+  }
+
+  .dashboard-title,
+  .posts-page-title,
+  .detail-title {
+    font-size: clamp(1.75rem, 10vw, 2.2rem);
+    line-height: 1.12;
+  }
+
+  .posts-create-btn,
+  .dashboard-primary-btn,
+  .dashboard-secondary-btn,
+  .profile-save-btn,
+  .author-profile-btn,
+  .author-profile-outline {
+    width: 100%;
+  }
+
+  .post-card-modern,
+  .profile-card,
+  .dashboard-metric-card,
+  .dashboard-panel {
+    border-radius: 18px;
+  }
+
+  .post-card-image-wrapper {
+    height: 190px;
+  }
+
+  .post-card-body,
+  .profile-identity-card,
+  .profile-social-card {
+    padding: 18px;
+  }
+
+  .profile-custom-tabs {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .profile-custom-tabs .nav-link {
+    padding: 12px 14px;
+  }
+
+  .dashboard-bar-chart {
+    height: 220px;
+    gap: 8px;
+  }
+
+  .dashboard-bar-track {
+    height: 150px;
+  }
+
+  .dashboard-engagement-ring {
+    width: 160px;
+    height: 160px;
+  }
+
+  .editor-toolbar {
+    overflow-x: auto;
+  }
+
+  .write-page,
+  .add-post-page {
+    padding-inline: 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .dashboard-metric-card,
+  .dashboard-actions-strip a,
+  .dashboard-inbox-item,
+  .dashboard-top-post,
+  .profile-action-card,
+  .profile-notification-item {
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .dashboard-metric-icon,
+  .dashboard-inbox-icon,
+  .dashboard-actions-strip i {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .post-card-actions {
+    flex-direction: column;
+  }
+
+  .post-action-btn {
+    width: 100%;
+  }
+
+  .detail-feature-image {
+    border-radius: 16px;
+  }
+}

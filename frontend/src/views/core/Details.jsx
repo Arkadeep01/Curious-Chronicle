@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Eye, Heart, Bookmark, MessageSquare, Cloud } from "lucide-react";
+import { Eye, Heart, Bookmark, MessageSquare } from "lucide-react";
 import Header from "../partials/header";
 import Footer from "../partials/footer";
 import { useParams, useNavigate } from "react-router-dom";
@@ -7,14 +7,17 @@ import moment from "moment";
 import apiInstance from "../../utils/axios";
 import Toast from "../../plugin/toast";
 import PostComments from "../dashboard/Comments";
+import { useAuthStore } from "../../store/auth";
 
 function Detail() {
   const [post, setPost] = useState(null);
   const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const param = useParams();
   const navigate = useNavigate();
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn());
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -45,29 +48,71 @@ function Detail() {
   }, [param.blog, navigate]);
 
   const handleLikePost = async () => {
-    try {
-      await apiInstance.post(`post/like/${post.id}/`);
+    if (!isLoggedIn) {
+      Toast("warning", "Please login to like posts");
+      navigate("/login");
+      return;
+    }
 
+    if (actionLoading) return;
+
+    try {
+      setActionLoading(true);
+      const response = await apiInstance.post("post/likes-post/", { post_id: post.id });
+      
+      const isLiked = response.data.message === "Post Liked";
+      
       setPost((prev) => ({
         ...prev,
-        Likes: [...(prev.Likes || []), {}],
+        user_has_liked: isLiked,
+        Likes: isLiked 
+          ? [...(prev.Likes || []), { id: Date.now() }] 
+          : (prev.Likes || []).slice(0, -1),
       }));
 
-      Toast("success", "Post liked");
+      Toast("success", isLiked ? "Post liked" : "Post unliked");
     } catch (err) {
       console.log(err);
-      Toast("error", "Failed to like post");
+      if (err.response?.status === 401) {
+        navigate("/login");
+      } else {
+        Toast("error", "Failed to update like");
+      }
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleSavePost = async () => {
-    try {
-      await apiInstance.post(`post/save/${post.id}/`);
+    if (!isLoggedIn) {
+      Toast("warning", "Please login to save posts");
+      navigate("/login");
+      return;
+    }
 
-      Toast("success", "Post saved");
+    if (actionLoading) return;
+
+    try {
+      setActionLoading(true);
+      const response = await apiInstance.post("post/bookmarks/", { post_id: post.id });
+      
+      const isBookmarked = response.data.message === "Post Bookmarked";
+      
+      setPost((prev) => ({
+        ...prev,
+        user_has_bookmarked: isBookmarked,
+      }));
+
+      Toast("success", isBookmarked ? "Post saved" : "Post removed from saved");
     } catch (err) {
       console.log(err);
-      Toast("error", "Failed to save");
+      if (err.response?.status === 401) {
+        navigate("/login");
+      } else {
+        Toast("error", "Failed to save post");
+      }
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -86,6 +131,9 @@ function Detail() {
       </>
     );
   }
+
+  const isLiked = post?.user_has_liked || false;
+  const isBookmarked = post?.user_has_bookmarked || false;
 
   return (
     <>
@@ -111,12 +159,18 @@ function Detail() {
                   alt=""
                 />
 
-                <div>
-                  <div className="detail-author-name">
+                <div className="detail-author-content">
+                  <div
+                    className="detail-author-name clickable-author"
+                    onClick={() => navigate(`/author/${post.profile?.id}/`)}
+                  >
                     {post.profile?.full_name}
                   </div>
 
-                  <div className="detail-author-role">Author</div>
+                  <div className="detail-author-role">
+                    Author
+                    {post.profile?.bio && ` | ${post.profile.bio}`}
+                  </div>
                 </div>
               </div>
 
@@ -163,14 +217,30 @@ function Detail() {
 
             {/* ACTION BAR */}
             <div className="detail-action-bar">
-              <button className="detail-action-btn" onClick={handleLikePost}>
-                <Heart className="action-icon" size={20} />
+              <button 
+                className={`detail-action-btn ${isLiked ? 'active' : ''}`} 
+                onClick={handleLikePost}
+                disabled={actionLoading}
+              >
+                <Heart 
+                  className="action-icon" 
+                  size={20} 
+                  fill={isLiked ? "currentColor" : "none"}
+                />
                 <span>{post.Likes?.length || 0}</span>
               </button>
 
-              <button className="detail-action-btn" onClick={handleSavePost}>
-                <Bookmark className="action-icon" size={20} />
-                <span>Save</span>
+              <button 
+                className={`detail-action-btn ${isBookmarked ? 'active' : ''}`} 
+                onClick={handleSavePost}
+                disabled={actionLoading}
+              >
+                <Bookmark 
+                  className="action-icon" 
+                  size={20} 
+                  fill={isBookmarked ? "currentColor" : "none"}
+                />
+                <span>{isBookmarked ? "Saved" : "Save"}</span>
               </button>
 
               <button className="detail-action-btn" onClick={scrollToComments}>

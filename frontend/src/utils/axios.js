@@ -1,18 +1,72 @@
-import axios from 'axios';          // Import the Axios library to make HTTP requests. Axios is a popular JavaScript library for this purpose.
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import { getRefreshToken, clearAuthSession, isAccessTokenExpired } from './auth';
+
+const ACCESS_TOKEN_COOKIE = "access_token";
+const REFRESH_TOKEN_COOKIE = "refresh_token";
 
 const apiInstance = axios.create({
-    // Set the base URL for this instance. All requests made using this instance will have this URL as their starting point.
     baseURL: 'http://127.0.0.1:8000/api/v1/',
-
-    // Set a timeout for requests made using this instance. If a request takes longer than 5 seconds to complete, it will be canceled.
-    timeout: 50000, // timeout after 5 seconds
-
-    // Define headers that will be included in every request made using this instance. This is common for specifying the content type and accepted response type.
+    timeout: 50000,
     headers: {
-        'Content-Type': 'application/json', // The request will be sending data in JSON format.
-        Accept: 'application/json', // The request expects a response in JSON format.
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
     },
 });
 
-// Export the 'apiInstance' so that it can be used in other parts of the codebase. Other modules can import and use this Axios instance for making API requests.
+apiInstance.interceptors.request.use(
+    (config) => {
+        const accessToken = Cookies.get(ACCESS_TOKEN_COOKIE);
+        if (accessToken) {
+            config.headers.Authorization = `Bearer ${accessToken}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+apiInstance.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
+
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+
+            try {
+                const refreshToken = Cookies.get(REFRESH_TOKEN_COOKIE);
+                if (!refreshToken) {
+                    clearAuthSession();
+                    window.location.href = '/login';
+                    return Promise.reject(error);
+                }
+
+                const response = await getRefreshToken(refreshToken);
+                
+                Cookies.set(ACCESS_TOKEN_COOKIE, response.access, {
+                    expires: 1,
+                    sameSite: 'Lax',
+                    secure: import.meta.env.PROD,
+                    path: '/',
+                });
+                Cookies.set(REFRESH_TOKEN_COOKIE, response.refresh || refreshToken, {
+                    expires: 50,
+                    sameSite: 'Lax',
+                    secure: import.meta.env.PROD,
+                    path: '/',
+                });
+
+                originalRequest.headers.Authorization = `Bearer ${response.access}`;
+                return apiInstance(originalRequest);
+            } catch (refreshError) {
+                clearAuthSession();
+                window.location.href = '/login';
+                return Promise.reject(refreshError);
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
+
 export default apiInstance;

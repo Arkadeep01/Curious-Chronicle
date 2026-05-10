@@ -1,205 +1,223 @@
 import { useState, useEffect, useMemo } from "react";
 import Header from "../partials/header";
 import Footer from "../partials/footer";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import apiInstance from "../../utils/axios";
-import useUserData from "../../plugin/useUserData";
 import moment from "moment";
+import { useAuthStore } from "../../store/auth";
 
 function Posts() {
-    const [posts, setPosts] = useState([]);
-    const [search, setSearch] = useState("");
-    const [sort, setSort] = useState("");
+  const [posts, setPosts] = useState([]);
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("");
+  const [_loading, setLoading] = useState(true);
 
-    const user = useUserData();
-    const userId = user?.user_id;
+  const navigate = useNavigate();
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn());
 
-    // ✅ FIXED EFFECT
-    useEffect(() => {
-        let ignore = false;
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate("/login");
+    }
+  }, [isLoggedIn, navigate]);
 
-        const loadPosts = async () => {
-            try {
-                const res = await apiInstance.get(
-                    `author/dashboard/post-list/${userId}/`
-                );
+  useEffect(() => {
+    let ignore = false;
 
-                if (!ignore) setPosts(res.data || []);
-            } catch (err) {
-                console.error(err);
-            }
-        };
+    const loadPosts = async () => {
+      try {
+        setLoading(true);
+        const res = await apiInstance.get("author/dashboard/post-list/");
 
-        if (userId) loadPosts();
-
-        return () => {
-            ignore = true;
-        };
-    }, [userId]);
-
-    // ✅ DERIVED STATE (NO MUTATION)
-    const processedPosts = useMemo(() => {
-        let data = [...posts];
-
-        // search
-        if (search) {
-            data = data.filter((p) =>
-                p.title.toLowerCase().includes(search.toLowerCase())
-            );
+        if (!ignore) {
+          setPosts(res.data?.results || res.data || []);
         }
-
-        // sort
-        if (sort === "Newest") {
-            data.sort((a, b) => new Date(b.date) - new Date(a.date));
-        } else if (sort === "Oldest") {
-            data.sort((a, b) => new Date(a.date) - new Date(b.date));
+      } catch (err) {
+        console.error(err);
+        if (err.response?.status === 401) {
+          navigate("/login");
         }
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
 
-        return data;
-    }, [posts, search, sort]);
+    if (isLoggedIn) loadPosts();
 
-    return (
-        <>
-            <Header />
+    return () => {
+      ignore = true;
+    };
+  }, [isLoggedIn, navigate]);
 
-            <section className="py-4">
-                <div className="container">
-                    <div className="card">
+  // ✅ DERIVED STATE (NO MUTATION)
+  const processedPosts = useMemo(() => {
+    let data = [...posts];
 
-                        {/* HEADER */}
-                        <div className="card-header d-flex justify-content-between">
-                            <h5>
-                                Posts{" "}
-                                <span className="badge bg-primary">
-                                    {processedPosts.length}
-                                </span>
-                            </h5>
+    // search
+    if (search) {
+      data = data.filter((p) =>
+        p.title.toLowerCase().includes(search.toLowerCase()),
+      );
+    }
 
-                            <Link to="/addpost/" className="btn btn-primary btn-sm">
-                                Add New
-                            </Link>
-                        </div>
+    // sort
+    if (sort === "Newest") {
+      data.sort((a, b) => new Date(b.date) - new Date(a.date));
+    } else if (sort === "Oldest") {
+      data.sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
 
-                        <div className="card-body">
+    return data;
+  }, [posts, search, sort]);
 
-                            {/* SEARCH + SORT */}
-                            <div className="row mb-3">
-                                <div className="col-md-8">
-                                    <input
-                                        type="search"
-                                        className="form-control"
-                                        placeholder="Search posts..."
-                                        onChange={(e) => setSearch(e.target.value)}
-                                    />
-                                </div>
+  const getPostUrl = (post) => `/post/${post.slug || post.blog}/`;
 
-                                <div className="col-md-4">
-                                    <select
-                                        className="form-select"
-                                        onChange={(e) => setSort(e.target.value)}
-                                    >
-                                        <option value="">Sort</option>
-                                        <option value="Newest">Newest</option>
-                                        <option value="Oldest">Oldest</option>
-                                    </select>
-                                </div>
-                            </div>
+  return (
+    <>
+      <Header />
 
-                            {/* TABLE */}
-                            <div className="table-responsive">
-                                <table className="table table-hover">
+      <section className="posts-page">
+        <div className="container-fluid">
+          {/* ================= HEADER ================= */}
 
-                                    <thead className="table-dark">
-                                        <tr>
-                                            <th>Image</th>
-                                            <th>Title</th>
-                                            <th>Views</th>
-                                            <th>Date</th>
-                                            <th>Category</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
+          <div className="posts-topbar">
+            <div>
+              <h1 className="posts-page-title">Your Posts</h1>
 
-                                    <tbody>
-                                        {processedPosts.map((p) => (
-                                            <tr key={p.id}>
-                                                <td>
-                                                    <img
-                                                        src={p.image}
-                                                        style={{
-                                                            width: 80,
-                                                            height: 80,
-                                                            objectFit: "cover",
-                                                            borderRadius: 8,
-                                                        }}
-                                                        alt=""
-                                                    />
-                                                </td>
+              <p className="posts-page-subtitle">
+                Manage, edit and monitor all your published stories.
+              </p>
+            </div>
 
-                                                <td>
-                                                    <Link
-                                                        to={`/${p.slug}/`}
-                                                        className="text-dark"
-                                                    >
-                                                        {p.title}
-                                                    </Link>
-                                                </td>
+            <Link to="/addpost/" className="posts-create-btn">
+              <i className="fas fa-plus"></i>
+              Create Post
+            </Link>
+          </div>
 
-                                                <td>{p.views}</td>
+          {/* ================= MAIN CARD ================= */}
 
-                                                <td>
-                                                    {moment(p.date).format(
-                                                        "DD MMM, YYYY"
-                                                    )}
-                                                </td>
+          <div className="posts-main-card">
+            {/* HEADER */}
 
-                                                <td>{p.category?.title}</td>
+            <div className="posts-card-header">
+              <div className="posts-count-wrapper">
+                <h4 className="posts-card-title">Posts Library</h4>
 
-                                                <td>
-                                                    <span className="badge bg-secondary">
-                                                        {p.status}
-                                                    </span>
-                                                </td>
+                <span className="posts-count-badge">
+                  {processedPosts.length}
+                </span>
+              </div>
 
-                                                <td>
-                                                    <div className="d-flex gap-2">
-                                                        <Link
-                                                            to={`/edit-post/${p.id}/`}
-                                                            className="btn btn-sm btn-primary"
-                                                        >
-                                                            Edit
-                                                        </Link>
+              {/* SEARCH + SORT */}
 
-                                                        <button className="btn btn-sm btn-danger">
-                                                            Delete
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
+              <div className="posts-toolbar">
+                <div className="posts-search-box">
+                  <i className="fas fa-search"></i>
 
-                                        {processedPosts.length === 0 && (
-                                            <tr>
-                                                <td colSpan="7" className="text-center">
-                                                    No posts found
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-
-                                </table>
-                            </div>
-
-                        </div>
-                    </div>
+                  <input
+                    type="search"
+                    placeholder="Search posts..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
                 </div>
-            </section>
 
-            <Footer />
-        </>
-    );
+                <div className="posts-sort-box">
+                  <i className="fas fa-filter"></i>
+
+                  <select
+                    value={sort}
+                    onChange={(e) => setSort(e.target.value)}
+                  >
+                    <option value="">Sort</option>
+                    <option value="Newest">Newest</option>
+                    <option value="Oldest">Oldest</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* POSTS GRID */}
+            <div className="posts-grid">
+              {processedPosts.map((p) => (
+                <div className="post-card-modern" key={p.id}>
+                  {/* IMAGE */}
+
+                  <Link
+                    to={getPostUrl(p)}
+                    className="post-card-image-wrapper"
+                  >
+                    <img
+                      src={p.image}
+                      alt={p.title}
+                      className="post-card-image"
+                    />
+
+                    <div className="post-card-status">{p.status}</div>
+                  </Link>
+
+                  {/* BODY */}
+                  <div className="post-card-body">
+                    <div className="post-card-meta">
+                      <span>
+                        <i className="far fa-eye"></i>
+                        {p.views}
+                      </span>
+
+                      <span>
+                        <i className="far fa-calendar"></i>
+                        {moment(p.date).format("DD MMM YYYY")}
+                      </span>
+                    </div>
+
+                    <Link to={getPostUrl(p)} className="post-card-title">
+                      {p.title}
+                    </Link>
+
+                    <div className="post-card-category">
+                      {p.category?.title}
+                    </div>
+
+                    {/* ACTIONS */}
+
+                    <div className="post-card-actions">
+                      <Link
+                        to={`/edit-post/${p.id}/`}
+                        className="post-action-btn edit"
+                      >
+                        <i className="fas fa-pen"></i>
+                        Edit
+                      </Link>
+
+                      <button className="post-action-btn delete">
+                        <i className="fas fa-trash"></i>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* EMPTY */}
+
+            {processedPosts.length === 0 && (
+              <div className="posts-empty-state">
+                <i className="far fa-folder-open"></i>
+
+                <h4>No posts found</h4>
+                <p>Try changing search or create a new post.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </>
+  );
 }
 
 export default Posts;

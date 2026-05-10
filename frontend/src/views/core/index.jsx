@@ -24,8 +24,8 @@ function Index() {
         ]);
 
         if (!ignore) {
-          setPosts(postRes.data);
-          setCategory(catRes.data);
+          setPosts(postRes.data?.results || postRes.data || []);
+          setCategory(catRes.data || []);
         }
       } catch (err) {
         console.error(err);
@@ -159,6 +159,7 @@ function Index() {
             {/* TRENDING SECTION */}
             <div className="col-lg-9">
               <TrendingSection
+                title="Trending Stories"
                 posts={posts}
                 showHeader={true}
                 withContainer={false}

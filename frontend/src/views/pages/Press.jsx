@@ -16,7 +16,7 @@ function Press() {
       {/* HERO */}
       <section style={{ background: "#f8f9fa", padding: "60px 0", textAlign: "center" }}>
         <div className="container">
-          <h1 className="fw-bold">Press & Community</h1>
+          <h1 className="fw-bold title-font">Press & Community</h1>
           <p className="text-muted">
             What people are saying about Curious Chronicle.
           </p>

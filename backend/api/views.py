@@ -9,13 +9,13 @@ from django.utils.encoding import force_bytes
 
 # Restframework
 from rest_framework import status
-from rest_framework.decorators import APIView
+from rest_framework.decorators import APIView, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import generics
-from rest_framework.permissions import AllowAny
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.pagination import PageNumberPagination
 
 
 from drf_yasg import openapi
@@ -34,6 +34,17 @@ from api import models as api_models
 from api.models import Feedback
 from api.serializer import FeedbackSerializer
 
+class PostPagination(PageNumberPagination):
+    page_size = 6
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+
+class DashboardPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+
+
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = api_serializer.MyTokenObtainPairSerializer         # Here, it specifies the serializer class to be used with this view.
 
@@ -44,13 +55,27 @@ class RegisterView(generics.CreateAPIView):
 
 
 class ProfileView(generics.RetrieveUpdateAPIView):
-    permission_classes = (AllowAny,)
+    permission_classes = [IsAuthenticated]
     serializer_class = api_serializer.ProfileSerializer
 
     def get_object(self) -> Any:
-        user_id = self.kwargs['user_id']
-        user = get_object_or_404(api_models.User, id=user_id)
+        user = self.request.user
         return get_object_or_404(api_models.Profile, user=user)
+
+
+class AuthorProfileView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, user_id):
+        try:
+            user = api_models.User.objects.get(id=user_id)
+            profile = api_models.Profile.objects.get(user=user)
+            serializer = api_serializer.ProfileSerializer(profile, context={'request': request})
+            return Response(serializer.data)
+        except api_models.User.DoesNotExist:
+            return Response({"message": "User not found"}, status=404)
+        except api_models.Profile.DoesNotExist:
+            return Response({"message": "Profile not found"}, status=404)
     
 
 def generate_numeric_otp(length=6):
@@ -183,6 +208,7 @@ class CategoryListAPIView(generics.ListAPIView):
 class PostCategoryListAPIView(generics.ListAPIView):
     serializer_class = api_serializer.PostSerializer
     permission_classes = [AllowAny]
+    pagination_class = PostPagination
 
     def get_queryset(self) -> Any:
         category_slug = self.kwargs['category_slug'] 
@@ -196,6 +222,7 @@ class PostCategoryListAPIView(generics.ListAPIView):
 class PostListAPIView(generics.ListAPIView):
     serializer_class = api_serializer.PostSerializer
     permission_classes = (AllowAny,)
+    pagination_class = PostPagination
 
     def get_queryset(self) -> Any:
         return api_models.Post.objects.filter(status="Active")
@@ -217,35 +244,42 @@ class PostDetailAPIView(generics.RetrieveAPIView):
 # Post Likes APIs 
 # --------------------------
 class LikePostAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     @swagger_auto_schema(
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'user_id': openapi.Schema(type=openapi.TYPE_INTEGER),
                 'post_id': openapi.Schema(type=openapi.TYPE_STRING),
             },
         ),
     )
 
     def post(self, request):
-        user_id = request.data['user_id']
-        post_id = request.data['post_id']
+        post_id = request.data.get('post_id')
+        
+        if not post_id:
+            return Response({"message": "post_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = api_models.User.objects.get(id=user_id)
-        post = api_models.Post.objects.get(id=post_id)
+        try:
+            post = api_models.Post.objects.get(id=post_id)
+        except api_models.Post.DoesNotExist:
+            return Response({"message": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        if user in post.Likes.all():        # Check if post has already been liked by this user
-            post.Likes.remove(user)         # If liked, unlike post
+        user = request.user
+
+        if user in post.Likes.all():
+            post.Likes.remove(user)
             return Response({"message": "Post Disliked"}, status=status.HTTP_200_OK)
         else:
-            post.Likes.add(user)             # If post hasn't been liked, like the post by adding user to set of poeple who have liked the post
+            post.Likes.add(user)
             
-            # Create Notification for Author
-            api_models.Notification.objects.create(
-                user=post.user,
-                post=post,
-                type="Like",
-            )
+            if post.user != user:
+                api_models.Notification.objects.create(
+                    user=post.user,
+                    post=post,
+                    type="Like",
+                )
             return Response({"message": "Post Liked"}, status=status.HTTP_201_CREATED)
         
 
@@ -253,85 +287,87 @@ class LikePostAPIView(APIView):
 # Post Comments APIs 
 # --------------------------
 class PostCommentAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     @swagger_auto_schema(
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
                 'post_id': openapi.Schema(type=openapi.TYPE_INTEGER),
-                'name': openapi.Schema(type=openapi.TYPE_STRING),
-                'email': openapi.Schema(type=openapi.TYPE_STRING),
                 'comment': openapi.Schema(type=openapi.TYPE_STRING),
             },
         ),
     )
     def post(self, request):
-        # Get data from request.data (frontend)
-        post_id = request.data['post_id']
-        name = request.data['name']
-        email = request.data['email']
-        comment = request.data['comment']
+        post_id = request.data.get('post_id')
+        comment_text = request.data.get('comment')
 
-        post = api_models.Post.objects.get(id=post_id)
+        if not post_id or not comment_text:
+            return Response({"message": "post_id and comment are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Create Comment
+        try:
+            post = api_models.Post.objects.get(id=post_id)
+        except api_models.Post.DoesNotExist:
+            return Response({"message": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+
         api_models.Comment.objects.create(
             post=post,
-            name=name,
-            email=email,
-            comment=comment,
+            name=request.user.profile.full_name if hasattr(request.user, 'profile') else request.user.username,
+            email=request.user.email,
+            comment=comment_text,
         )
 
-        # Notification
-        api_models.Notification.objects.create(
-            user=post.user,
-            post=post,
-            type="Comment",
-        )
+        if post.user != request.user:
+            api_models.Notification.objects.create(
+                user=post.user,
+                post=post,
+                type="Comment",
+            )
 
-        # Return response back to the frontend
-        return Response({"message": "Commented Sent"}, status=status.HTTP_201_CREATED)
+        return Response({"message": "Comment Posted"}, status=status.HTTP_201_CREATED)
  
 
 # --------------------------
 # Post Bookmark APIs 
 # --------------------------
 class BookmarkPostAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     @swagger_auto_schema(
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'user_id': openapi.Schema(type=openapi.TYPE_INTEGER),
                 'post_id': openapi.Schema(type=openapi.TYPE_STRING),
             },
         ),
     )
     
     def post(self, request):
-        user_id = request.data['user_id']
-        post_id = request.data['post_id']
-
-        user = api_models.User.objects.get(id=user_id)
-        post = api_models.Post.objects.get(id=post_id)
-
-        bookmark = api_models.Bookmark.objects.filter(post=post, user=user).first()
+        post_id = request.data.get('post_id')
         
-        if bookmark:
-            # Remove post from bookmark
+        if not post_id:
+            return Response({"message": "post_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            post = api_models.Post.objects.get(id=post_id)
+        except api_models.Post.DoesNotExist:
+            return Response({"message": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        user = request.user
+        
+        bookmark, created = api_models.Bookmark.objects.get_or_create(post=post, user=user)
+        
+        if not created:
             bookmark.delete()
             return Response({"message": "Post Un-Bookmarked"}, status=status.HTTP_200_OK)
-        else:
-            api_models.Bookmark.objects.create(
-                user=user,
-                post=post
-            )
-
-            # Notification
+        
+        if post.user != user:
             api_models.Notification.objects.create(
                 user=post.user,
                 post=post,
                 type="Bookmark",
             )
-            return Response({"message": "Post Bookmarked"}, status=status.HTTP_201_CREATED)
+        return Response({"message": "Post Bookmarked"}, status=status.HTTP_201_CREATED)
 
 
 
@@ -342,11 +378,10 @@ class BookmarkPostAPIView(APIView):
 # --------------------------
 class DashboardStats(generics.ListAPIView):
     serializer_class = api_serializer.AuthorStats
-    permission_classes = (AllowAny,)
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self) -> Any:
-        user_id = self.kwargs['user_id']
-        user = api_models.User.objects.get(id=user_id)
+        user = self.request.user
         posts = api_models.Post.objects.filter(user=user)
         views = sum(post.views for post in posts)
         likes = sum(post.Likes.count() for post in posts)
@@ -359,7 +394,6 @@ class DashboardStats(generics.ListAPIView):
             "bookmarks": bookmarks,
         }]
 
-    # We grab all the query_set written in this block above
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
@@ -372,12 +406,11 @@ class DashboardStats(generics.ListAPIView):
 # --------------------------
 class DashboardPostList(generics.ListAPIView):
     serializer_class = api_serializer.PostSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = [IsAuthenticated]
+    pagination_class = DashboardPagination
 
     def get_queryset(self) -> Any:
-        user_id = self.kwargs['user_id']
-        user = api_models.User.objects.get(id=user_id)
-
+        user = self.request.user
         return api_models.Post.objects.filter(user=user).order_by("-id")
 
 
@@ -386,12 +419,11 @@ class DashboardPostList(generics.ListAPIView):
 # --------------------------
 class DashboardCommentList(generics.ListAPIView):
     serializer_class = api_serializer.CommentSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = [IsAuthenticated]
+    pagination_class = DashboardPagination
 
     def get_queryset(self) -> Any:
-        user_id = self.kwargs['user_id']
-        user = api_models.User.objects.get(id=user_id)
-            
+        user = self.request.user
         return api_models.Comment.objects.filter(post__user=user)
 
 
@@ -400,19 +432,25 @@ class DashboardCommentList(generics.ListAPIView):
 # --------------------------
 class DashboardNotificationList(generics.ListAPIView):
     serializer_class = api_serializer.NotificationSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = [IsAuthenticated]
+    pagination_class = DashboardPagination
 
     def get_queryset(self) -> Any:
-        user_id = self.kwargs['user_id']
-        user = api_models.User.objects.get(id=user_id)
+        user = self.request.user
+        queryset = api_models.Notification.objects.filter(user=user)
 
-        return api_models.Notification.objects.filter(seen=False, user=user)
+        if self.request.query_params.get("seen") != "all":
+            queryset = queryset.filter(seen=False)
+
+        return queryset
 
 
 # --------------------------
 # Dashboard MarkedNotification List APIs 
 # --------------------------
 class DashboardMarkNotificationList(APIView):
+    permission_classes = [IsAuthenticated]
+
     @swagger_auto_schema(
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
@@ -423,8 +461,15 @@ class DashboardMarkNotificationList(APIView):
     )
 
     def post(self, request):
-        noti_id= request.data['noti_id']
-        noti = api_models.Notification.objects.get(id=noti_id)
+        noti_id = request.data.get('noti_id')
+        
+        if not noti_id:
+            return Response({"message": "noti_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            noti = api_models.Notification.objects.get(id=noti_id, user=request.user)
+        except api_models.Notification.DoesNotExist:
+            return Response({"message": "Notification not found"}, status=status.HTTP_404_NOT_FOUND)
 
         noti.seen = True
         noti.save()
@@ -436,19 +481,30 @@ class DashboardMarkNotificationList(APIView):
 # Dashboard Reply Comment List APIs 
 # --------------------------
 class DashboardReplyCommentAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     @swagger_auto_schema(
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'noti_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'comment_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'reply': openapi.Schema(type=openapi.TYPE_STRING),
             },
         ),
     )
 
     def post(self, request):
-        comment_id= request.data['comment_id']
-        reply = request.data['reply']
-        comment = api_models.Comment.objects.get(id=comment_id)
+        comment_id = request.data.get('comment_id')
+        reply = request.data.get('reply')
+        
+        if not comment_id or not reply:
+            return Response({"message": "comment_id and reply are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            comment = api_models.Comment.objects.get(id=comment_id, post__user=request.user)
+        except api_models.Comment.DoesNotExist:
+            return Response({"message": "Comment not found"}, status=status.HTTP_404_NOT_FOUND)
+
         comment.reply = reply
         comment.save()
 
@@ -460,29 +516,25 @@ class DashboardReplyCommentAPIView(APIView):
 # --------------------------
 class DashboardPostCreateAPIView(generics.CreateAPIView):
     serializer_class = api_serializer.PostSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        print(request.data)
+        user = request.user
+        title = request.data.get('title')
+        image = request.data.get('image')
+        description = request.data.get('description')
+        tags = request.data.get('tags')
+        category_id = request.data.get('category')
+        post_status = request.data.get('post_status')
 
-        user_id= request.data.get('user_id')
-        title= request.data.get('title')
-        image= request.data.get('image')
-        description= request.data.get('description')
-        tags= request.data.get('tags')
-        category_id= request.data.get('category')
-        post_status= request.data.get('post_status')
-        
-        print(user_id)
-        print(title)
-        print(image)
-        print(description)
-        print(tags)
-        print(category_id)
-        print(post_status)
+        if not title or not description:
+            return Response({"message": "Title and description are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = api_models.User.objects.get(id=user_id)
-        category = api_models.Category.objects.get(id=category_id)
+        try:
+            category = api_models.Category.objects.get(id=category_id)
+        except api_models.Category.DoesNotExist:
+            return Response({"message": "Category not found"}, status=status.HTTP_404_NOT_FOUND)
+
         profile, _ = api_models.Profile.objects.get_or_create(user=user)
         
         post = api_models.Post.objects.create(
@@ -496,7 +548,7 @@ class DashboardPostCreateAPIView(generics.CreateAPIView):
             status=post_status
         )
 
-        return Response({"message": "Post Created Successfully"}, status=status.HTTP_201_CREATED)
+        return Response({"message": "Post Created Successfully", "post_id": post.id}, status=status.HTTP_201_CREATED)
     
 
 # --------------------------
@@ -504,12 +556,11 @@ class DashboardPostCreateAPIView(generics.CreateAPIView):
 # --------------------------
 class DashboardUpdatePostAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = api_serializer.PostSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = [IsAuthenticated]
 
     def get_object(self) -> Any:
-        user_id = self.kwargs['user_id']
-        post_id = self.kwargs['post_id']
-        user = get_object_or_404(api_models.User, id=user_id)
+        user = self.request.user
+        post_id = self.kwargs.get('post_id')
         return get_object_or_404(api_models.Post, id=post_id, user=user)
 
     def update(self, request, *args, **kwargs):
@@ -522,17 +573,13 @@ class DashboardUpdatePostAPIView(generics.RetrieveUpdateDestroyAPIView):
         category_id = request.data.get('category')
         post_status = request.data.get('post_status')
 
-        print(title)
-        print(image)
-        print(description)
-        print(tags)
-        print(category_id)
-        print(post_status)
+        if not title or not description:
+            return Response({"message": "Title and description are required"}, status=status.HTTP_400_BAD_REQUEST)
 
         category = get_object_or_404(api_models.Category, id=category_id)
 
         post_instance.title = title
-        if image != "undefined":
+        if image and image != "undefined":
             post_instance.image = image
         post_instance.description = description
         post_instance.tags = tags

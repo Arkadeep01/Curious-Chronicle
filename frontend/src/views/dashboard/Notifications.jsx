@@ -1,168 +1,202 @@
 import { useState, useEffect } from "react";
-import Header from "../partials/header";
-import Footer from "../partials/footer";
+import { useNavigate } from "react-router-dom";
+import moment from "moment";
 
 import apiInstance from "../../utils/axios";
-import useUserData from "../../plugin/useUserData";
 import Toast from "../../plugin/toast";
+import { useAuthStore } from "../../store/auth";
 
-function Notifications() {
-    const [noti, setNoti] = useState([]);
-    const [loading, setLoading] = useState(true);
+function Notifications({
+  showAll = false,
+  notifications,
+  comments,
+  limit,
+  onNotificationSeen,
+}) {
+  const [noti, setNoti] = useState([]);
+  const [commentList, setCommentList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    const user = useUserData();
-    const userId = user?.user_id;
+  const navigate = useNavigate();
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn());
 
-    // ✅ FIXED EFFECT
-    useEffect(() => {
-        let ignore = false;
+  const hasNotificationProps = Array.isArray(notifications);
+  const hasCommentProps = Array.isArray(comments);
 
-        const loadNotifications = async () => {
-            try {
-                setLoading(true);
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate("/login");
+    }
+  }, [isLoggedIn, navigate]);
 
-                const response = await apiInstance.get(
-                    `author/dashboard/noti-list/${userId}/`
-                );
+  useEffect(() => {
+    let ignore = false;
 
-                if (!ignore) {
-                    setNoti(response.data || []);
-                }
-            } catch (err) {
-                console.error(err);
-                Toast("error", "Failed to load notifications");
-            } finally {
-                if (!ignore) setLoading(false);
-            }
-        };
+    const loadNotifications = async () => {
+      try {
+        setLoading(true);
 
-        if (userId) loadNotifications();
+        const [notiResponse, commentResponse] = await Promise.all([
+          hasNotificationProps
+            ? Promise.resolve({ data: notifications })
+            : apiInstance.get("author/dashboard/noti-list/", {
+                params: showAll ? { seen: "all" } : {},
+              }),
+          hasCommentProps
+            ? Promise.resolve({ data: comments })
+            : apiInstance.get("author/dashboard/comment-list/"),
+        ]);
 
-        return () => {
-            ignore = true;
-        };
-    }, [userId]);
+        if (!ignore) {
+          const notificationsData =
+            notiResponse.data?.results || notiResponse.data || [];
+          const commentsData =
+            commentResponse.data?.results || commentResponse.data || [];
 
-    // ✅ MARK AS SEEN
-    const handleMarkNotiAsSeen = async (notiId) => {
-        try {
-            await apiInstance.post(
-                "author/dashboard/noti-mark-seen/",
-                { noti_id: notiId }
-            );
-
-            Toast("success", "Notification seen");
-
-            // update only this notification (no full refetch)
-            setNoti((prev) =>
-                prev.filter((n) => n.id !== notiId)
-            );
-
-        } catch (err) {
-            console.error(err);
-            Toast("error", "Failed to update notification");
+          setNoti(Array.isArray(notificationsData) ? notificationsData : []);
+          setCommentList(Array.isArray(commentsData) ? commentsData : []);
         }
+      } catch (err) {
+        console.error(err);
+
+        if (err.response?.status === 401) {
+          navigate("/login");
+        } else {
+          Toast("error", "Failed to load notifications");
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
     };
 
-    if (loading) {
-        return (
-            <>
-                <Header />
-                <div className="text-center mt-5">Loading notifications...</div>
-                <Footer />
-            </>
-        );
+    if (isLoggedIn) {
+      loadNotifications();
     }
 
+    return () => {
+      ignore = true;
+    };
+  }, [
+    comments,
+    hasCommentProps,
+    hasNotificationProps,
+    isLoggedIn,
+    navigate,
+    notifications,
+    showAll,
+  ]);
+
+  const handleMarkNotiAsSeen = async (notiId) => {
+    try {
+      if (onNotificationSeen) {
+        await onNotificationSeen(notiId);
+        return;
+      }
+
+      await apiInstance.post("author/dashboard/noti-mark-seen/", {
+        noti_id: notiId,
+      });
+
+      setNoti((prev) =>
+        showAll
+          ? prev.map((n) => (n.id === notiId ? { ...n, seen: true } : n))
+          : prev.filter((n) => n.id !== notiId),
+      );
+
+      Toast("success", "Notification marked as seen");
+    } catch (err) {
+      console.error(err);
+      Toast("error", "Failed to update notification");
+    }
+  };
+
+  const unreadCount = noti.filter((n) => !n.seen).length;
+  const visibleNotifications = limit ? noti.slice(0, limit) : noti;
+  const remainingSlots = limit
+    ? Math.max(limit - visibleNotifications.length, 0)
+    : commentList.length;
+  const visibleComments = limit
+    ? commentList.slice(0, remainingSlots)
+    : commentList;
+
+  if (loading) {
     return (
-        <>
-            <Header />
-
-            <section className="py-5">
-                <div className="container">
-                    <div className="card">
-
-                        <div className="card-header">
-                            <h3>Notifications</h3>
-                            <small>Manage your activity</small>
-                        </div>
-
-                        <div className="card-body">
-                            <ul className="list-group">
-
-                                {noti.length === 0 && (
-                                    <p className="text-center">No notifications yet</p>
-                                )}
-
-                                {noti.map((n) => (
-                                    <li key={n.id} className="list-group-item mb-3 shadow-sm rounded">
-
-                                        <div className="d-flex align-items-start">
-
-                                            {/* ICON */}
-                                            <div className="me-3">
-                                                {n.type === "Like" && (
-                                                    <i className="fas fa-thumbs-up text-primary fs-5" />
-                                                )}
-                                                {n.type === "Comment" && (
-                                                    <i className="bi bi-chat-left-quote-fill text-success fs-5" />
-                                                )}
-                                                {n.type === "Bookmark" && (
-                                                    <i className="fas fa-bookmark text-danger fs-5" />
-                                                )}
-                                            </div>
-
-                                            {/* CONTENT */}
-                                            <div className="flex-grow-1">
-                                                <h6>{n.type}</h6>
-
-                                                {n.type === "Like" && (
-                                                    <div>
-                                                        Someone liked your post{" "}
-                                                        <b>{n.post?.title?.slice(0, 30)}...</b>
-                                                    </div>
-                                                )}
-
-                                                {n.type === "Comment" && (
-                                                    <div>
-                                                        New comment on{" "}
-                                                        <b>{n.post?.title?.slice(0, 30)}...</b>
-                                                    </div>
-                                                )}
-
-                                                {n.type === "Bookmark" && (
-                                                    <div>
-                                                        Someone bookmarked{" "}
-                                                        <b>{n.post?.title?.slice(0, 30)}...</b>
-                                                    </div>
-                                                )}
-
-                                                <small className="text-muted">Just now</small>
-
-                                                <div>
-                                                    <button
-                                                        onClick={() => handleMarkNotiAsSeen(n.id)}
-                                                        className="btn btn-sm btn-secondary mt-2"
-                                                    >
-                                                        Mark as seen
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </li>
-                                ))}
-
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <Footer />
-        </>
+      <div className="dashboard-panel">
+        <div className="dashboard-empty-state">
+          Loading notifications...
+        </div>
+      </div>
     );
+  }
+
+  return (
+    <div className="dashboard-panel">
+      <div className="dashboard-panel-header">
+        <div>
+          <h2>Notifications</h2>
+          <p>Recent notifications and comments needing attention.</p>
+        </div>
+
+        <span className="dashboard-pill">{unreadCount} unread</span>
+      </div>
+
+      <div className="dashboard-inbox-list">
+        {visibleNotifications.map((n) => (
+          <div className="dashboard-inbox-item" key={n.id}>
+            <div className="dashboard-inbox-icon">
+              <i
+                className={`bi ${
+                  n.type === "Like"
+                    ? "bi-heart"
+                    : n.type === "Comment"
+                      ? "bi-chat-left-text"
+                      : "bi-bookmark"
+                }`}
+              ></i>
+            </div>
+
+            <div>
+              <h3>{n.type}</h3>
+              <p>
+                {n.post?.title ? n.post.title.slice(0, 52) : "Post activity"}
+              </p>
+              <small>{n.date ? moment(n.date).fromNow() : "Just now"}</small>
+            </div>
+
+            {!n.seen ? (
+              <button onClick={() => handleMarkNotiAsSeen(n.id)}>Seen</button>
+            ) : (
+              <span>Seen</span>
+            )}
+          </div>
+        ))}
+
+        {visibleComments.map((comment) => (
+          <div className="dashboard-inbox-item" key={`comment-${comment.id}`}>
+            <div className="dashboard-inbox-icon comment">
+              <i className="bi bi-chat-dots"></i>
+            </div>
+
+            <div>
+              <h3>{comment.name}</h3>
+              <p>{comment.comment}</p>
+              <small>{comment.post?.title || "Comment activity"}</small>
+            </div>
+
+            <span>{moment(comment.date).format("DD MMM")}</span>
+          </div>
+        ))}
+
+        {noti.length === 0 && commentList.length === 0 && (
+          <div className="dashboard-empty-state">
+            No unread activity right now.
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default Notifications;

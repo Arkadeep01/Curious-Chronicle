@@ -36,7 +36,7 @@ function About() {
         }}
       >
         <div className="container">
-          <h1 className="fw-bold">About Us</h1>
+          <h1 className="fw-bold title-font">About Us</h1>
           <p className="text-muted">Home › About Us</p>
         </div>
       </section>

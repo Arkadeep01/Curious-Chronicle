@@ -1,26 +1,32 @@
 import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth';
 
-// Define the 'PrivateRoute' component as a functional component that takes 'children' as a prop.
 const PrivateRoute = ({ children }) => {
+    const isLoggedIn = useAuthStore((state) => state.isLoggedIn());
+    const _hasHydrated = useAuthStore((state) => state._hasHydrated);
 
-    // ACCESS AUTH STATE FROM STORE
-    const isLoggedIn = useAuthStore((state) => state.isLoggedIn());         // Get authentication status (boolean)
-    const loading = useAuthStore((state) => state.loading);                 // Get loading state (important for preventing UI flicker)
-
-    // If authentication state is still being determined (e.g., persisted state loading),
-    // prevent rendering or redirecting prematurely.
-    if (loading) {
-        return <div>Loading...</div>;
+    if (!_hasHydrated) {
+        return (
+            <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100vh',
+                backgroundColor: '#f8f9fa'
+            }}>
+                <div className="text-center">
+                    <div className="spinner-border text-primary" role="status" />
+                    <p className="mt-3">Loading...</p>
+                </div>
+            </div>
+        );
     }
 
-    // If user is authenticated → render protected content
-    // If not → redirect to login page
-    return isLoggedIn ? (
-        <>{children}</>
-    ) : (
-        <Navigate to="/login" replace />
-    );
+    if (!isLoggedIn) {
+        return <Navigate to="/login" replace />;
+    }
+
+    return children;
 };
 
 export default PrivateRoute;

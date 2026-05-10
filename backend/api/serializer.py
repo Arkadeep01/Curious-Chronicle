@@ -91,9 +91,19 @@ class UserSerializer(serializers.ModelSerializer):
 # Profile serializer for user registration
 # --------------------------------
 class ProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+    post_count = serializers.SerializerMethodField()
+    
     class Meta:
         model = api_models.Profile
-        fields = '__all__'
+        fields = [
+            'id', 'username', 'email', 'image', 'full_name', 'bio', 'about',
+            'author', 'country', 'facebook', 'twitter', 'date', 'post_count'
+        ]
+
+    def get_post_count(self, profile):
+        return api_models.Post.objects.filter(user=profile.user, status="Active").count()
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
@@ -172,11 +182,25 @@ class CommentSerializer(serializers.ModelSerializer):
 # --------------------------------
 class PostSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(source="comment_set", many=True, read_only=True)
+    user_has_liked = serializers.SerializerMethodField()
+    user_has_bookmarked = serializers.SerializerMethodField()
     
     class Meta:
         model = api_models.Post
         fields = "__all__"
         depth = 1
+
+    def get_user_has_liked(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return request.user in obj.Likes.all()
+        return False
+
+    def get_user_has_bookmarked(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return api_models.Bookmark.objects.filter(post=obj, user=request.user).exists()
+        return False
 
     def __init__(self, *args, **kwargs):
         super(PostSerializer, self).__init__(*args, **kwargs)

@@ -190,7 +190,6 @@ function AddPost() {
     try {
       setIsLoading(true);
       const formData = new FormData();
-      formData.append("user_id", userId);
       formData.append("title", post.title);
       formData.append("slug", post.slug);
       formData.append("image", post.image);

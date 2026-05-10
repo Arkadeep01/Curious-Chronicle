@@ -17,7 +17,7 @@ function Contact() {
         }}
       >
         <div className="container">
-          <h1 className="fw-bold logo">Get in Touch</h1>
+          <h1 className="fw-bold title-font">Get in Touch</h1>
           <p className="text-muted">
             Have a question, idea, or feedback? Let’s talk.
           </p>

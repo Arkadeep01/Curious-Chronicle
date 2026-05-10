@@ -12,6 +12,9 @@ function Category() {
   const [loading, setLoading] = useState(true);
   const param = useParams();
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
   useEffect(() => {
     let ignore = false;
 
@@ -21,10 +24,13 @@ function Category() {
 
         const response = await apiInstance.get(
           `post/category/posts/${param.blog}/`,
+          { params: { page: currentPage } }
         );
 
         if (!ignore) {
-          setPosts(response.data);
+          const data = response.data;
+          setPosts(data?.results || data || []);
+          setTotalPages(data?.total_pages || 1);
         }
       } catch (error) {
         console.error("Error fetching posts:", error);
@@ -40,17 +46,11 @@ function Category() {
     return () => {
       ignore = true;
     };
-  }, [param.blog]);
+  }, [param.blog, currentPage]);
 
-  // Pagination
-  const itemsPerPage = 4;
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const indexOfLastItem = currentPage * 4;
+  const indexOfFirstItem = indexOfLastItem - 4;
   const postItems = posts.slice(indexOfFirstItem, indexOfLastItem);
-
-  const totalPages = Math.ceil(posts.length / itemsPerPage);
 
   return (
     <>

@@ -1,30 +1,14 @@
-import { useEffect, useState } from 'react';
-import { setUser } from '../utils/auth';
+import { useState, useEffect } from 'react';
+import { useAuthStore } from '../store/auth';
 
 const MainWrapper = ({ children }) => {
-    // Initialize the 'loading' state variable and set its initial value to 'true'
-    const [loading, setLoading] = useState(true);
+    const [mounted, setMounted] = useState(false);
 
-    // Define a useEffect hook to handle side effects after component mounting
     useEffect(() => {
-        // Define an asynCuriousus function 'handler'
-        const handler = async () => {
-            // Set the 'loading' state to 'true' to indicate the component is loading
-            setLoading(true);
-
-            // Perform an asynCuriousus user authentication action
-            await setUser();
-
-            // Set the 'loading' state to 'false' to indicate the loading process has completed
-            setLoading(false);
-        };
-
-        // Call the 'handler' function immediately after the component is mounted
-        handler();
+        setMounted(true);
     }, []);
 
-    // Render content conditionally based on the 'loading' state
-    return <>{loading ? null : children}</>;
+    return mounted ? children : null;
 };
 
 export default MainWrapper;

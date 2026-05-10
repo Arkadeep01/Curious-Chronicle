@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Send } from "lucide-react";
 import moment from "moment";
-
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../store/auth";
 import apiInstance from "../../utils/axios";
 import Toast from "../../plugin/toast";
 
@@ -9,6 +10,9 @@ function PostComments({ post, setPost, param }) {
   const [createComment, setCreateComment] = useState({
     comment: "",
   });
+
+  const navigate = useNavigate();
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn());
 
   const handleCreateCommentChange = (e) => {
     setCreateComment({
@@ -19,6 +23,12 @@ function PostComments({ post, setPost, param }) {
 
   const handleCreateCommentSubmit = async (e) => {
     e.preventDefault();
+
+    if (!isLoggedIn) {
+      Toast("warning", "Please login to comment");
+      navigate("/login");
+      return;
+    }
 
     try {
       const payload = {
@@ -40,7 +50,11 @@ function PostComments({ post, setPost, param }) {
     } catch (error) {
       console.log(error);
 
-      Toast("error", "Failed to post comment");
+      if (error.response?.status === 401) {
+        navigate("/login");
+      } else {
+        Toast("error", "Failed to post comment");
+      }
     }
   };
 

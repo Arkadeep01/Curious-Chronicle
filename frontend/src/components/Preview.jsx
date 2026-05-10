@@ -46,7 +46,7 @@ function Preview() {
 
         {/* CONTENT */}
         <div
-          className="post-content fancy-text"
+          className="post-content"
           style={{
             fontSize: "1.2rem",
             lineHeight: "1.8",
@@ -77,55 +77,13 @@ function Preview() {
               min-height: 100vh;
             }
 
-            .fancy-text {
-                color: #222;
-            }
-
-            .fancy-text h1,
-            .fancy-text h2,
-            .fancy-text h3 {
-                font-family: 'Tangerine', cursive;
-                font-size: 64px;
-                line-height: 1;
-                margin-top: 30px;
-                margin-bottom: 12px;
-            }
-
-            .fancy-text p,
-            .fancy-text li {
-                font-family: 'Tangerine', cursive;
-                font-size: 42px;
-                line-height: 1.15;
-                margin-bottom: 10px;
-            }
-
-            .fancy-text blockquote {
-                font-family: 'Tangerine', cursive;
-                font-size: 46px;
+             font-size: 46px;
                 line-height: 1.2;
                 border-left: 4px solid #888;
                 padding-left: 18px;
                 margin: 20px 0;
                 font-style: italic;
                 position: relative;
-            }
-
-            .fancy-text blockquote::before {
-                content: "“";
-                font-size: 52px;
-                position: absolute;
-                left: -8px;
-                top: -10px;
-                color: #888;
-            }
-
-            .fancy-text blockquote::after {
-                content: "”";
-                font-size: 42px;
-                position: absolute;
-                right: 0;
-                bottom: -20px;
-                color: #888;
             }
           `}
         </style>
