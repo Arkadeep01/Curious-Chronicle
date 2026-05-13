@@ -92,7 +92,7 @@ function Category() {
                     <div className="card-body">
                       <h5 className="fw-bold">
                         <Link
-                          to={`/${p.blog}/`}
+                          to={`/post/${p.slug || p.blog}/`}
                           className="text-decoration-none text-dark"
                         >
                           {p.title.length > 50

@@ -1,12 +1,12 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { getRefreshToken, clearAuthSession, isAccessTokenExpired } from './auth';
+import { getRefreshToken, clearAuthSession } from './auth';
 
 const ACCESS_TOKEN_COOKIE = "access_token";
 const REFRESH_TOKEN_COOKIE = "refresh_token";
 
 const apiInstance = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api/v1/',
+    baseURL: `${import.meta.env.VITE_API_URL}/api/v1/`,
     timeout: 50000,
     headers: {
         'Content-Type': 'application/json',

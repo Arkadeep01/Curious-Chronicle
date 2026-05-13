@@ -1868,6 +1868,15 @@ input[type="checkbox"] {
   line-height: 1.2;
   font-weight: 800;
   color: #111827;
+  font-size: 28px;
+}
+
+.detail-content h2 {
+  font-size: 24px;
+}
+
+.detail-content h3 {
+  font-size: 20px;
 }
 
 .detail-content img {
