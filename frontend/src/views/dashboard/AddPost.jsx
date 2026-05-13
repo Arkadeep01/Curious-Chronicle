@@ -58,7 +58,7 @@ function AddPost() {
   const handleSaveDraft = () => {
     if (!userId) return;
 
-    const draftKey = `chrono_blog_draft_${userId}`;
+    const draftKey = `Curious Chronicle_blog_draft_${userId}`;
 
     const draftData = {
       title: post.title,
@@ -81,7 +81,7 @@ function AddPost() {
   useEffect(() => {
     if (!userId) return;
 
-    const draftKey = `chrono_blog_draft_${userId}`;
+    const draftKey = `Curious Chronicle_blog_draft_${userId}`;
     const savedDraft = localStorage.getItem(draftKey);
 
     if (savedDraft) {
@@ -204,7 +204,7 @@ function AddPost() {
         },
       });
 
-      localStorage.removeItem(`chrono_blog_draft_${userId}`);
+      localStorage.removeItem(`Curious Chronicle_blog_draft_${userId}`);
 
       Swal.fire({
         icon: "success",

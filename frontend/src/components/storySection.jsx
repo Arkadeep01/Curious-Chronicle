@@ -87,7 +87,7 @@ function StorySection({
                         >
                           {heroPost.profile?.full_name ||
                             heroPost.user?.full_name ||
-                            "Chrono Team"}
+                            "Curious Chronicle Team"}
                         </span>
 
                         <div className="trending-author-bio">
@@ -149,7 +149,7 @@ function StorySection({
                     className="trending-author clickable-author"
                     onClick={(e) => handleAuthorNavigate(e, post.profile?.id)}
                   >
-                    {post.profile?.full_name || "Chrono Team"}
+                    {post.profile?.full_name || "Curious Chronicle Team"}
                   </span>
 
                   <div className="trending-author-bio">
@@ -192,7 +192,7 @@ function StorySection({
                       className="trending-author clickable-author"
                       onClick={(e) => handleAuthorNavigate(e, post.profile?.id)}
                     >
-                      {post.profile?.full_name || "Chrono Team"}
+                      {post.profile?.full_name || "Curious Chronicle Team"}
                     </span>
 
                     <div className="trending-author-bio">

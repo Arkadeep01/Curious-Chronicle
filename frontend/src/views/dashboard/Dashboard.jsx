@@ -9,7 +9,7 @@ import moment from "moment";
 import Toast from "../../plugin/toast";
 import { useAuthStore } from "../../store/auth";
 
-const LOGIN_STREAK_KEY = "chrono_dashboard_login_days";
+const LOGIN_STREAK_KEY = "Curious Chronicle_dashboard_login_days";
 
 const formatNumber = (value) =>
   new Intl.NumberFormat("en", { notation: value > 9999 ? "compact" : "standard" }).format(value || 0);

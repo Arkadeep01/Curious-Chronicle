@@ -11,9 +11,9 @@ from django.urls import re_path
     
 schema_view = get_schema_view(
     openapi.Info(
-        title="Chrono Blog API",
+        title="Curious Chronicle Blog API",
         default_version="v1",
-        description="API documentation for Chrono Blog Backend",
+        description="API documentation for Curious Chronicle Blog Backend",
         terms_of_service="https://curiouschronicle.com/policies/",
         contact=openapi.Contact(email="arkadeep.int@gmail.com"),
         license=openapi.License(name="BSD License"),
