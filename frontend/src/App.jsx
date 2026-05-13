@@ -10,7 +10,7 @@ import Contact from "./views/pages/Contact";
 import Register from "./views/auth/Register";
 import Login from "./views/auth/Login";
 import ForgotPassword from "./views/auth/ForgotPassword";
-import CreatePassword from "./views/auth/temp";
+import CreatePassword from "./views/auth/CreatePassword";
 import Dashboard from "./views/dashboard/Dashboard";
 import Posts from "./views/dashboard/Posts";
 import AddPost from "./views/dashboard/AddPost";
