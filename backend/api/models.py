@@ -13,8 +13,8 @@ import shortuuid
 class User(AbstractUser):
   username = models.CharField(unique=True, max_length=255)
   email = models.EmailField(unique=True)
-  full_name = models.CharField(max_length=100, null=True)
-  otp = models.CharField(max_length=100, null=True, blank=True)
+  full_name = models.CharField(max_length=255, null=True)
+  otp = models.CharField(max_length=255, null=True, blank=True)
   otp_expiry = models.DateTimeField(null=True, blank=True)
   reset_token = models.CharField(max_length=255, null=True, blank=True)
   
@@ -45,13 +45,13 @@ class User(AbstractUser):
 class Profile(models.Model):
   user = models.OneToOneField(User, on_delete=models.CASCADE)
   image = models.ImageField(upload_to="image", default="default/default-user.jpg", null=True, blank=True)
-  full_name = models.CharField(max_length=100, null=True, blank=True)
+  full_name = models.CharField(max_length=255, null=True, blank=True)
   bio = models.TextField(null=True, blank=True)
   about = models.TextField(null=True, blank=True)
   author = models.BooleanField(default=False)
-  country = models.CharField(max_length=100, null=True, blank=True)
-  facebook = models.CharField(max_length=100, null=True, blank=True)
-  twitter = models.CharField(max_length=100, null=True, blank=True)
+  country = models.CharField(max_length=255, null=True, blank=True)
+  facebook = models.CharField(max_length=255, null=True, blank=True)
+  twitter = models.CharField(max_length=255, null=True, blank=True)
   date = models.DateTimeField(auto_now_add=True)
 
   def __str__(self) -> str:
@@ -83,9 +83,9 @@ post_save.connect(save_user_profile, sender=User)
 # Category Model
 # ----------------------------
 class Category(models.Model):
-  title = models.CharField(max_length=100)
+  title = models.CharField(max_length=255)
   image = models.ImageField(upload_to="image", null=True, blank=True)
-  slug = models.SlugField(unique=True, null=True, blank=True)
+  slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
 
   def __str__(self) -> str:
     return self.title
@@ -118,14 +118,14 @@ class Post(models.Model):
   user = models.ForeignKey(User, on_delete=models.CASCADE)
   profile = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True)
   category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name="posts")  
-  title = models.CharField(max_length=100)
+  title = models.CharField(max_length=255)
   description =models.TextField(null=True, blank=True)
   image = models.ImageField(upload_to="image", null=True, blank=True)
-  status = models.CharField(choices=STATUS, max_length=100, default="Active")
+  status = models.CharField(choices=STATUS, max_length=255, default="Active")
   tags = models.CharField(max_length=255, null=True, blank=True)
   views = models.IntegerField(default=0)
   Likes = models.ManyToManyField(User, blank=True, related_name="Likes_User")
-  slug = models.SlugField(unique=True, null=True, blank=True)  
+  slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
   date = models.DateTimeField(auto_now_add=True)
 
   def __str__(self) -> str:
@@ -148,8 +148,8 @@ class Post(models.Model):
 # ----------------------------
 class Comment(models.Model):
   post = models.ForeignKey(Post, on_delete=models.CASCADE)
-  name = models.CharField(max_length=100)
-  email = models.CharField(max_length=100)
+  name = models.CharField(max_length=255)
+  email = models.CharField(max_length=255)
   comment =models.TextField(null=True, blank=True)
   reply =models.TextField(null=True, blank=True)
   date = models.DateTimeField(auto_now_add=True)
@@ -191,7 +191,7 @@ class Notification(models.Model):
   )
   user = models.ForeignKey(User, on_delete=models.CASCADE)
   post = models.ForeignKey(Post, on_delete=models.CASCADE)
-  type = models.CharField(choices=NOTI_TYPE, max_length=100)
+  type = models.CharField(choices=NOTI_TYPE, max_length=255)
   seen = models.BooleanField(default=False)
   date = models.DateTimeField(auto_now_add=True)
 
