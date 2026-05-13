@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Header from "../partials/header";
 import Footer from "../partials/footer";
-import StorySection from "../../components/StorySection";
+import StorySection from "../../components/storySection";
 import Search from "../../components/Search";
 import apiInstance from "../../utils/axios";
 
