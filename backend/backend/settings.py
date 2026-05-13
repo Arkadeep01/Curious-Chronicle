@@ -10,21 +10,21 @@ env.read_env()
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env.bool("DEBUG", default=True)
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
-    CSRF_TRUSTED_ORIGINS = env.list(
-        "CSRF_TRUSTED_ORIGINS",
-        default=[
-            "http://localhost:5173",
-            "http://127.0.0.1:5173",
-        ]
-    )
+CSRF_TRUSTED_ORIGINS = env.list(
+    "CSRF_TRUSTED_ORIGINS",
+    default=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
+)
 
-    CORS_ALLOWED_ORIGINS = env.list(
-        "CORS_ALLOWED_ORIGINS",
-        default=[
-            "http://localhost:5173",
-            "http://127.0.0.1:5173",
-        ]
-    )
+CORS_ALLOWED_ORIGINS = env.list(
+    "CORS_ALLOWED_ORIGINS",
+    default=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
+)
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 CORS_ALLOW_CREDENTIALS = True
@@ -186,14 +186,13 @@ SIMPLE_JWT = {
 
 # Custom Admin Settings
 JAZZMIN_SETTINGS = {
-    "site_title": "Chrono Blog Admin",
-    "site_header": "Chrono Blog",
-    "site_brand": "Chrono Blog",
-    "site_logo": "../../frontend/public/logo.png",
-    "site_icon": "images/favicon2.png",
+    "site_title": "Curious Chronicle Admin",
+    "site_header": "Curious Chronicle Blog",
+    "site_brand": "Curious Chronicle Blog",
+    "site_logo": "logo.png",
 
-    "welcome_sign": "Welcome to Chrono Blog Dashboard",
-    "copyright": "Chrono Blog",
+    "welcome_sign": "Welcome to Curious Chronicle Blog Dashboard",
+    "copyright": "Curious Chronicle Blog",
 
     "topmenu_links": [
         {"name": "Home", "url": "/", "icon": "fas fa-globe", "target": "_blank"},
